@@ -119,7 +119,8 @@
 
         /* --- CHẾ ĐỘ TRÌNH CHIẾU (PRESENTATION MODE) CSS --- */
         body.presentation-active { overflow: hidden; } /* Chống cuộn trang web khi đang trình chiếu */
-        #presentation-slide { font-family: var(--print-font-family); }
+        #presentation-slide { font-family: 'Roboto', sans-serif !important; }
+        
         /* Ẩn scrollbar của thẻ chứa công thức trong slide nhưng vẫn cho cuộn ngang */
         .slide-math-scroll::-webkit-scrollbar { height: 6px; }
         .slide-math-scroll::-webkit-scrollbar-track { background: transparent; }
@@ -129,8 +130,8 @@
         #slide-formula { font-size: calc(40px * var(--slide-font-scale, 1)); transition: font-size 0.2s ease; }
         #slide-example { font-size: calc(35px * var(--slide-font-scale, 1)); transition: font-size 0.2s ease; }
         @media (min-width: 768px) {
-            #slide-formula { font-size: calc(65px * var(--slide-font-scale, 1)); }
-            #slide-example { font-size: calc(50px * var(--slide-font-scale, 1)); }
+            #slide-formula { font-size: calc(60px * var(--slide-font-scale, 1)); }
+            #slide-example { font-size: calc(45px * var(--slide-font-scale, 1)); }
         }
     </style>
 
@@ -190,7 +191,7 @@
                 <button onclick="loadSampleData()" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-2 px-5 rounded-full text-sm shadow-sm transition">Tải dữ liệu mẫu</button>
                 <button onclick="togglePreview()" class="bg-teal-500 hover:bg-teal-600 text-white font-bold py-2 px-5 rounded-full shadow-md text-sm transition">👁️ Xem trước bản in</button>
                 <button onclick="triggerPrint()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-5 rounded-full shadow-md text-sm transition">🖨️ In / Xuất PDF</button>
-                <!-- NÚT TRÌNH CHIẾU MỚI -->
+                <!-- NÚT TRÌNH CHIẾU -->
                 <button onclick="openPresentation()" class="bg-amber-500 hover:bg-amber-600 text-white font-bold py-2 px-6 rounded-full shadow-md text-sm transition flex items-center">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
                     Trình chiếu 16:9
@@ -298,7 +299,7 @@
                         </select>
                     </div>
 
-                    <!-- Bộ Icon (Mới) -->
+                    <!-- Bộ Icon -->
                     <div>
                         <label class="block text-xs font-semibold text-gray-600 mb-1">✨ Bộ Icon Chủ Đề:</label>
                         <select id="icon-set-select" class="border border-gray-300 rounded-lg px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-blue-400 bg-white" onchange="applyTheme()">
@@ -442,11 +443,11 @@
             </button>
         </div>
         
-        <!-- Khung Slide Tràn Màn Hình (Bỏ các giới hạn kích thước, width/height 100%) -->
-        <div id="presentation-slide" class="relative bg-white w-full h-full flex flex-col p-8 md:p-16 lg:p-24 overflow-hidden transition-colors duration-300">
+        <!-- Khung Slide Tràn Màn Hình -->
+        <div id="presentation-slide" class="relative bg-white w-full h-full flex flex-col p-8 md:p-12 lg:p-16 overflow-hidden transition-colors duration-300">
             
             <!-- Phần Tiêu đề Slide -->
-            <div class="border-b-4 border-slate-200 pb-4 mb-6 md:mb-10 flex flex-col justify-end min-h-[100px] lg:min-h-[140px]">
+            <div class="border-b-4 border-slate-200 pb-4 mb-4 md:mb-6 flex flex-col justify-end">
                 <h2 id="slide-topic" class="text-2xl md:text-3xl lg:text-4xl text-slate-500 uppercase tracking-widest font-bold mb-4 flex items-center gap-4">
                     <span id="slide-icon" class="text-5xl lg:text-6xl"></span>
                     <span id="slide-topic-text"></span>
@@ -454,23 +455,23 @@
                 <h1 id="slide-name" class="text-4xl md:text-[55px] lg:text-[70px] text-slate-800 font-extrabold leading-tight"></h1>
             </div>
             
-            <!-- Phần Nội dung (Công thức & Ví dụ) -->
-            <div class="flex-1 flex flex-col justify-center items-center text-center space-y-8 md:space-y-16 w-full max-w-6xl mx-auto">
+            <!-- Phần Nội dung (Công thức & Ví dụ) đẩy lên trên -->
+            <div class="flex-1 flex flex-col justify-start items-start text-left space-y-6 md:space-y-10 w-full mt-4 mx-auto overflow-y-auto pb-20">
                 
                 <!-- Công thức chính -->
-                <div class="w-full bg-slate-50 border border-slate-200 rounded-3xl p-8 md:p-16 shadow-inner">
+                <div class="w-full bg-slate-50 border border-slate-200 rounded-3xl p-6 md:p-10 shadow-inner text-left">
                     <div id="slide-formula" class="text-slate-900 w-full overflow-x-auto slide-math-scroll py-2"></div>
                 </div>
 
                 <!-- Ví dụ -->
-                <div id="slide-example-container" class="w-full mt-10">
-                    <div class="text-xl md:text-2xl font-semibold text-slate-400 mb-6 uppercase tracking-widest">Ví dụ minh họa</div>
-                    <div id="slide-example" class="text-slate-700 w-full overflow-x-auto slide-math-scroll pb-4"></div>
+                <div id="slide-example-container" class="w-full">
+                    <div class="text-xl md:text-2xl font-semibold text-slate-400 mb-4 uppercase tracking-widest text-left">Ví dụ minh họa</div>
+                    <div id="slide-example" class="text-slate-700 w-full overflow-x-auto slide-math-scroll pb-4 text-left"></div>
                 </div>
             </div>
 
             <!-- Bộ đếm trang & Thanh tiến trình -->
-            <div class="absolute bottom-8 left-0 right-0 px-16 flex justify-between items-center text-slate-400 text-lg md:text-2xl font-medium">
+            <div class="absolute bottom-8 left-0 right-0 px-16 flex justify-between items-center text-slate-400 text-lg md:text-2xl font-medium bg-white/80 backdrop-blur-sm pt-2">
                 <div class="flex items-center gap-3">
                     <span class="keyboard-hint bg-slate-100 border border-slate-200 rounded-lg px-3 py-1 text-base">⬅️</span>
                     <span>Lùi</span>
@@ -579,9 +580,6 @@
                 let watermarkText = watermarkInput.value;
                 let watermarkEl = document.getElementById('watermark-display');
                 watermarkEl.innerText = watermarkText;
-                
-                // Ở chế độ xem bình thường, nếu input rỗng sẽ tự ẩn vì nội dung innerText rỗng.
-                // Trạng thái bật/tắt (hiện) được kiểm soát an toàn tuyệt đối bởi CSS `@media` và `!important`.
             }
         }
 
