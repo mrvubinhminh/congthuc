@@ -1,0 +1,1138 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tổng Hợp Công Thức Toán - In PDF & Trình Chiếu</title>
+    
+    <!-- Tailwind CSS cho giao diện -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Tích hợp các Font chữ đẹp tiếng Việt từ Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,700;1,400&family=Open+Sans:ital,wght@0,400;0,600;1,400&family=Quicksand:wght@400;600;700&family=Roboto:ital,wght@0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
+
+    <!-- Cấu hình và tải MathJax -->
+    <script>
+        MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                processEscapes: true
+            },
+            options: {
+                skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre']
+            }
+        };
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <!-- SheetJS, PapaParse và QRCode.js -->
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+    <style>
+        /* --- BIẾN CSS ĐIỀU KHIỂN FONT CHỮ VÀ SIZE CHỮ --- */
+        :root {
+            --print-font-family: 'Arial', sans-serif;
+            --print-font-size: 9.5pt;
+            --print-line-height: 1.15;
+        }
+
+        /* --- CẤU HÌNH IN (PRINT MEDIA FORMATTING) --- */
+        @media print {
+            @page { size: A4; margin: 15mm; }
+            html, body {
+                width: 100% !important; max-width: 100% !important; margin: 0 !important; padding: 0 !important;
+                display: block !important; background: white !important; color: black;
+                font-family: var(--print-font-family) !important;
+                -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; box-sizing: border-box !important;
+            }
+            .no-print, #preview-controls, #presentation-overlay { display: none !important; }
+            #print-area-wrapper { width: 100% !important; padding: 0 !important; display: block !important; }
+            #print-area {
+                width: 100% !important; max-width: 100% !important; padding: 0 !important; transform: none !important; 
+                box-shadow: none !important; column-gap: 12px !important; column-fill: auto !important; display: block !important;
+            }
+            #content-container { width: 100% !important; padding-bottom: 10mm !important; display: block !important; }
+            .topic-group { break-inside: auto; margin-bottom: 4px !important; width: 100% !important; }
+            .theme-header { -webkit-print-color-adjust: exact !important; break-after: avoid; padding: 2px 4px !important; }
+            table { width: 100% !important; border-collapse: collapse; table-layout: fixed; page-break-inside: auto; }
+            tr { break-inside: avoid; page-break-inside: avoid; page-break-after: auto; }
+            th, td { border: 1px solid #9ca3af !important; padding: 2px 3px !important; word-wrap: break-word; overflow-wrap: break-word; }
+            .content-cell { font-size: var(--print-font-size) !important; line-height: var(--print-line-height) !important; }
+            mjx-container { max-width: 100% !important; overflow-x: hidden !important; }
+            mjx-math { white-space: normal !important; }
+            mjx-container[display="true"] { margin: 1px 0 !important; padding: 0 !important; }
+            
+            .print-header-container { column-span: all !important; -webkit-column-span: all !important; display: block !important; width: 100% !important; margin-bottom: 15px !important; }
+            .title-print { text-align: center; font-size: calc(var(--print-font-size) * 1.8) !important; line-height: 1.3 !important; font-weight: 800 !important; letter-spacing: 0.05em; margin-bottom: 4px; }
+            .student-info-print { font-size: calc(var(--print-font-size) * 1.1) !important; }
+            .print-footer {
+                position: fixed; bottom: 0; left: 0; width: 100%; border-top: 1px dashed #9ca3af; padding-top: 4px; padding-bottom: 2px;
+                font-size: calc(var(--print-font-size) * 0.85) !important; color: #4b5563; display: flex !important; justify-content: center; 
+                background: white !important; -webkit-print-color-adjust: exact; z-index: 100;
+            }
+            #watermark-display { 
+                display: block !important; position: fixed !important; top: 50% !important; left: 50% !important;
+                transform: translate(-50%, -50%) rotate(-45deg) !important; opacity: 1 !important; color: rgba(156, 163, 175, 0.12) !important; 
+                z-index: 9999 !important; font-size: 80pt !important; pointer-events: none !important; -webkit-print-color-adjust: exact !important;
+            }
+            .qr-code-container canvas { display: none !important; }
+            .qr-code-container img { display: block !important; }
+        }
+
+        /* --- CHẾ ĐỘ XEM TRƯỚC (IN-APP PREVIEW) --- */
+        body.preview-active { background-color: #323639; }
+        body.preview-active .no-print-preview { display: none !important; }
+        body.preview-active #print-area-wrapper { padding-top: 80px; padding-bottom: 60px; display: flex; justify-content: center; width: 100%; min-height: 100vh; }
+        body.preview-active #print-area {
+            margin: 0; background: white; box-shadow: 0 2px 10px rgba(0,0,0,0.2), 0 16px 32px rgba(0,0,0,0.4); column-gap: 12px;
+            position: relative; transform: scale(var(--preview-zoom, 1)); transform-origin: top center; transition: transform 0.15s ease-out;
+            font-family: var(--print-font-family); column-fill: balance; 
+        }
+        body.preview-active .content-cell { font-size: var(--print-font-size); line-height: var(--print-line-height); }
+        body.preview-active .topic-group { margin-bottom: 4px; break-inside: avoid; } 
+        body.preview-active th, body.preview-active td { padding: 2px 3px !important; }
+        body.preview-active mjx-container[display="true"] { margin: 1px 0 !important; padding: 0 !important; }
+        body.preview-active .print-header-container { display: block; column-span: all; -webkit-column-span: all; width: 100%; margin-bottom: 15px; }
+        body.preview-active .title-print { font-size: calc(var(--print-font-size) * 1.8); line-height: 1.3; font-weight: 800; letter-spacing: 0.05em; margin-bottom: 4px; }
+        body.preview-active .student-info-print { font-size: calc(var(--print-font-size) * 1.1); }
+        body.preview-active .theme-header h3, body.preview-active .theme-header span { font-size: calc(var(--print-font-size) * 1.1); padding: 2px 4px; }
+        body.preview-active .print-footer { display: flex !important; position: absolute; width: auto; justify-content: center; font-size: calc(var(--print-font-size) * 0.85); border-top: 1px dashed #9ca3af; padding-top: 4px; }
+        body.preview-active #watermark-display { display: block !important; z-index: 9999 !important; color: rgba(156, 163, 175, 0.12) !important; opacity: 1 !important; font-size: 80pt !important; }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #c5d3e8; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #a3b8d7; }
+
+        .data-table { width: 100%; table-layout: fixed; }
+        .data-table th, .data-table td { border: 1px solid #e5e7eb; word-wrap: break-word; overflow-wrap: break-word; }
+        .math-content mjx-container { max-width: 100%; overflow-x: auto; overflow-y: hidden; }
+
+        @media screen { body:not(.preview-active) #watermark-display { display: none !important; } }
+        .qr-code-container img, .qr-code-container canvas { width: 100% !important; height: auto !important; object-fit: contain; }
+
+        /* --- CHẾ ĐỘ TRÌNH CHIẾU (PRESENTATION MODE) CSS --- */
+        body.presentation-active { overflow: hidden; } /* Chống cuộn trang web khi đang trình chiếu */
+        #presentation-slide { font-family: var(--print-font-family); }
+        /* Ẩn scrollbar của thẻ chứa công thức trong slide nhưng vẫn cho cuộn ngang */
+        .slide-math-scroll::-webkit-scrollbar { height: 6px; }
+        .slide-math-scroll::-webkit-scrollbar-track { background: transparent; }
+        .slide-math-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        
+        /* Font size động cho trình chiếu */
+        #slide-formula { font-size: calc(40px * var(--slide-font-scale, 1)); transition: font-size 0.2s ease; }
+        #slide-example { font-size: calc(35px * var(--slide-font-scale, 1)); transition: font-size 0.2s ease; }
+        @media (min-width: 768px) {
+            #slide-formula { font-size: calc(65px * var(--slide-font-scale, 1)); }
+            #slide-example { font-size: calc(50px * var(--slide-font-scale, 1)); }
+        }
+    </style>
+
+    <style id="dynamic-print-style"></style>
+</head>
+<body class="bg-blue-50 text-gray-800 font-sans min-h-screen">
+
+    <!-- Thanh công cụ chế độ xem trước chuyên nghiệp -->
+    <div id="preview-controls" class="hidden fixed top-0 left-0 w-full bg-[#323639] text-[#f1f3f4] h-14 z-50 flex-row justify-between items-center px-4 md:px-6 shadow-md border-b border-gray-700 select-none">
+        <div class="flex items-center space-x-3 w-1/3">
+            <svg class="w-5 h-5 text-gray-400 hidden sm:block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+            <span class="text-sm font-medium tracking-wide">Xem trước bản in</span>
+        </div>
+        <div class="flex items-center space-x-2 bg-[#202124] rounded-lg px-2 py-1 shadow-inner">
+            <button onclick="changeZoom(-0.1)" class="p-1 hover:bg-gray-700 rounded text-gray-400 hover:text-white transition" title="Thu nhỏ"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path></svg></button>
+            <span id="zoom-text" class="text-xs font-mono w-10 text-center text-gray-300">100%</span>
+            <button onclick="changeZoom(0.1)" class="p-1 hover:bg-gray-700 rounded text-gray-400 hover:text-white transition" title="Phóng to"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg></button>
+        </div>
+        <div class="flex items-center justify-end space-x-3 w-1/3">
+            <button onclick="togglePreview()" class="px-4 py-1.5 rounded text-sm font-medium hover:bg-gray-700 transition hidden sm:block">Đóng</button>
+            <button onclick="downloadPDF()" class="bg-rose-600 hover:bg-rose-500 text-white px-4 py-1.5 rounded text-sm font-medium shadow transition flex items-center"><svg class="w-4 h-4 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg><span class="hidden sm:inline">Tải PDF</span></button>
+            <button onclick="triggerPrint()" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-1.5 rounded text-sm font-medium shadow transition flex items-center"><svg class="w-4 h-4 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg><span class="hidden sm:inline">In ngay</span></button>
+        </div>
+    </div>
+
+    <!-- Bảng Điều Khiển -->
+    <div class="no-print no-print-preview container mx-auto p-4 max-w-5xl">
+        <div class="bg-white rounded-2xl shadow-lg p-6 mb-6 border-t-4 border-blue-400">
+            <h1 class="text-3xl font-bold text-center text-blue-600 mb-2">📚 Trình Tạo Bí Kíp Toán Học A4</h1>
+            <p class="text-center text-gray-500 mb-6 text-sm">Ép dãn dòng siêu nhỏ • Tùy chỉnh Font • Tối ưu không gian giấy</p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Nguồn Excel -->
+                <div class="bg-blue-50 p-4 rounded-xl border border-blue-100">
+                    <h2 class="font-bold text-blue-700 mb-3 flex items-center">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                        Tải lên file Excel (.xlsx)
+                    </h2>
+                    <input type="file" id="excel-file" accept=".xlsx, .xls" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-100 file:text-blue-700 hover:file:bg-blue-200 cursor-pointer">
+                    <p class="text-[11px] text-gray-500 mt-2">Cột: <b>Chủ đề</b> | <b>Tên công thức</b> | <b>Công thức</b> | <b>Ví dụ</b> | <b>Link (Tùy chọn)</b></p>
+                </div>
+                <!-- Nguồn Sheets -->
+                <div class="bg-green-50 p-4 rounded-xl border border-green-100">
+                    <h2 class="font-bold text-green-700 mb-3 flex items-center">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path></svg>
+                        Lấy từ Google Sheets
+                    </h2>
+                    <div class="flex space-x-2">
+                        <input type="text" id="gsheet-link" placeholder="Dán link Google Sheets..." class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400 text-sm">
+                        <button onclick="loadFromGoogleSheets()" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg text-sm shrink-0">Tải</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Nút Hành động chính -->
+            <div class="mt-6 flex flex-wrap justify-center gap-3">
+                <button onclick="loadSampleData()" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-2 px-5 rounded-full text-sm shadow-sm transition">Tải dữ liệu mẫu</button>
+                <button onclick="togglePreview()" class="bg-teal-500 hover:bg-teal-600 text-white font-bold py-2 px-5 rounded-full shadow-md text-sm transition">👁️ Xem trước bản in</button>
+                <button onclick="triggerPrint()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-5 rounded-full shadow-md text-sm transition">🖨️ In / Xuất PDF</button>
+                <!-- NÚT TRÌNH CHIẾU MỚI -->
+                <button onclick="openPresentation()" class="bg-amber-500 hover:bg-amber-600 text-white font-bold py-2 px-6 rounded-full shadow-md text-sm transition flex items-center">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                    Trình chiếu 16:9
+                </button>
+            </div>
+            
+            <!-- --- MENU TẠO PROMPT THÔNG MINH --- -->
+            <div class="mt-6 bg-indigo-50 border border-indigo-200 rounded-xl p-4 shadow-sm">
+                <div class="flex justify-between items-center cursor-pointer select-none" onclick="togglePanel('panel-prompt', 'icon-prompt')">
+                    <h3 class="text-sm font-bold text-indigo-700 flex items-center">
+                        <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20"><path d="M11 3a1 1 0 10-2 0v1a1 1 0 102 0V3zM15.657 5.757a1 1 0 00-1.414-1.414l-.707.707a1 1 0 001.414 1.414l.707-.707zM18 10a1 1 0 01-1 1h-1a1 1 0 110-2h1a1 1 0 011 1zM5.05 6.464A1 1 0 106.464 5.05l-.707-.707a1 1 0 00-1.414 1.414l.707.707zM5 10a1 1 0 01-1 1H3a1 1 0 110-2h1a1 1 0 011 1zM8 16v-1a1 1 0 112 0v1a1 1 0 11-2 0zM13.536 14.95a1 1 0 010-1.414l.707-.707a1 1 0 011.414 1.414l-.707.707a1 1 0 01-1.414 0zM10 8a2 2 0 100 4 2 2 0 000-4z"></path></svg>
+                        Menu Tạo Prompt Thông Minh (Dành cho AI)
+                    </h3>
+                    <svg id="icon-prompt" class="w-5 h-5 text-indigo-500 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg>
+                </div>
+                <div id="panel-prompt" class="mt-3 hidden">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
+                        <div>
+                            <label class="block text-[11px] font-bold text-indigo-600 mb-1">Môn học:</label>
+                            <select id="prompt-subject" class="w-full border border-indigo-200 rounded-lg px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-indigo-400 bg-white">
+                                <option value="Toán học">Toán học</option>
+                                <option value="Vật lý">Vật lý</option>
+                                <option value="Hóa học">Hóa học</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-indigo-600 mb-1">Khối lớp:</label>
+                            <select id="prompt-grade" class="w-full border border-indigo-200 rounded-lg px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-indigo-400 bg-white">
+                                <option value="Lớp 10">Lớp 10</option>
+                                <option value="Lớp 11">Lớp 11</option>
+                                <option value="Lớp 12">Lớp 12</option>
+                                <option value="Ôn thi THPT Quốc gia">Ôn thi THPT Quốc gia</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-indigo-600 mb-1">Chủ đề cần sinh:</label>
+                            <input type="text" id="prompt-topic" placeholder="Ví dụ: Đạo hàm, Hình học không gian..." class="w-full border border-indigo-200 rounded-lg px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-indigo-400">
+                        </div>
+                    </div>
+                    <div class="flex flex-col sm:flex-row gap-2">
+                        <button onclick="generateAdvancedPrompt()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-6 rounded-lg text-sm transition shadow-md flex-1">
+                            ✨ Tạo Prompt Chuyên Gia
+                        </button>
+                        <button id="copy-advanced-btn" onclick="copyAdvancedPrompt()" class="hidden bg-white border border-indigo-300 text-indigo-700 hover:bg-indigo-50 font-bold py-2 px-6 rounded-lg text-sm transition shadow-sm">
+                            📋 Copy Prompt
+                        </button>
+                    </div>
+                    <div id="advanced-prompt-result" class="hidden mt-4 bg-white p-3 rounded-lg border border-indigo-100 text-[11px] text-gray-700 font-mono whitespace-pre-wrap max-h-40 overflow-y-auto shadow-inner"></div>
+                </div>
+            </div>
+
+            <!-- --- BỘ ĐIỀU KHIỂN GIAO DIỆN & FONT CHỮ --- -->
+            <div class="mt-6 bg-gray-50 border border-gray-200 rounded-xl p-4">
+                <div class="flex justify-between items-center cursor-pointer select-none border-b pb-2 mb-3" onclick="togglePanel('panel-display', 'icon-display')">
+                    <h3 class="text-sm font-bold text-gray-700">⚙️ Thiết lập hiển thị (Font, Màu, Cỡ chữ)</h3>
+                    <svg id="icon-display" class="w-5 h-5 text-gray-500 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg>
+                </div>
+                <div id="panel-display" class="flex flex-wrap gap-4 items-end">
+                    
+                    <!-- Font chữ -->
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-600 mb-1">🔤 Font chữ tiếng Việt:</label>
+                        <select id="font-select" class="border border-gray-300 rounded-lg px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-blue-400 bg-white min-w-[150px]" onchange="applyFontSettings()">
+                            <option value="'Arial', sans-serif">1. Arial (Cơ bản)</option>
+                            <option value="'Times New Roman', serif">2. Times New Roman (Học thuật)</option>
+                            <option value="'Roboto', sans-serif">3. Roboto (Hiện đại)</option>
+                            <option value="'Open Sans', sans-serif">4. Open Sans (Dễ nhìn)</option>
+                            <option value="'Lora', serif">5. Lora (Có chân thanh lịch)</option>
+                            <option value="'Quicksand', sans-serif">6. Quicksand (Bo tròn dễ thương)</option>
+                        </select>
+                    </div>
+
+                    <!-- Size chữ -->
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-600 mb-1">A± Cỡ chữ (Hiện tại: <span id="font-size-label">9.5pt</span>):</label>
+                        <div class="flex items-center bg-white border border-gray-300 rounded-lg overflow-hidden h-[34px]">
+                            <button onclick="changeBaseFontSize(-0.5)" class="px-3 hover:bg-gray-100 text-gray-700 font-bold border-r border-gray-200 h-full transition">-</button>
+                            <button onclick="changeBaseFontSize(0.5)" class="px-3 hover:bg-gray-100 text-gray-700 font-bold h-full transition">+</button>
+                        </div>
+                    </div>
+
+                    <!-- Chủ đề màu -->
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-600 mb-1">🎨 Màu sắc:</label>
+                        <select id="theme-select" class="border border-gray-300 rounded-lg px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-blue-400 bg-white" onchange="applyTheme()">
+                            <optgroup label="Cơ bản">
+                                <option value="blue">Xanh Pastel (Chuẩn)</option>
+                                <option value="colorful">Đa sắc (Phân biệt mảng)</option>
+                                <option value="mono">Đen trắng (Tiết kiệm mực)</option>
+                                <option value="pink">Hồng Sakura</option>
+                                <option value="ocean">Gradient Biển</option>
+                            </optgroup>
+                            <optgroup label="Học sinh Đáng yêu & Hiện đại">
+                                <option value="sunflower">🌻 Vàng Hướng Dương</option>
+                                <option value="matcha">🍵 Xanh Matcha</option>
+                                <option value="lavender">💜 Tím Lavender</option>
+                                <option value="macaron">🍬 Kẹo Macaron (Hồng/Xanh)</option>
+                                <option value="mint">🍃 Bạc Hà Tươi</option>
+                                <option value="cherry">🍒 Đỏ Cherry</option>
+                                <option value="coffee">☕ Cà Phê Sữa</option>
+                                <option value="autumn">🍁 Sắc Thu (Cam Nâu)</option>
+                                <option value="candy">🍭 Kẹo Ngọt Đa Sắc</option>
+                                <option value="dark-modern">🌌 Đen Hiện Đại (Tốn mực)</option>
+                            </optgroup>
+                        </select>
+                    </div>
+
+                    <!-- Bộ Icon (Mới) -->
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-600 mb-1">✨ Bộ Icon Chủ Đề:</label>
+                        <select id="icon-set-select" class="border border-gray-300 rounded-lg px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-blue-400 bg-white" onchange="applyTheme()">
+                            <option value="default">Biểu tượng hỗn hợp (Mặc định)</option>
+                            <option value="math">📐 Thuần Toán Học</option>
+                            <option value="physics">⚡ Thuần Vật Lý</option>
+                            <option value="chemistry">🧪 Thuần Hóa Học</option>
+                            <option value="cute_animals">🐼 Động Vật Cute</option>
+                            <option value="food">🍩 Đồ Ăn Ngon</option>
+                            <option value="space">🚀 Vũ Trụ Kỳ Bí</option>
+                            <option value="nature">🌿 Thiên Nhiên Xanh</option>
+                            <option value="magic">🔮 Phép Thuật</option>
+                            <option value="minimal">🔹 Hình Khối Tối Giản</option>
+                            <option value="faces">😎 Cảm Xúc Vui Nhộn</option>
+                        </select>
+                    </div>
+
+                    <!-- Hướng giấy -->
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-600 mb-1">📄 Giấy / Số cột:</label>
+                        <select id="orientation-select" class="border border-gray-300 rounded-lg px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-blue-400 bg-white" onchange="applyOrientation()">
+                            <option value="portrait-1" selected>Dọc (1 cột dễ đọc)</option>
+                            <option value="portrait">Dọc (2 cột siêu khít)</option>
+                            <option value="landscape">Ngang (2 cột rộng rãi)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cài đặt tài liệu in -->
+            <div class="mt-4 bg-gray-50 p-4 rounded-xl border border-gray-200">
+                <div class="flex justify-between items-center cursor-pointer select-none border-b pb-2 mb-3" onclick="togglePanel('panel-info', 'icon-info')">
+                    <h3 class="text-sm font-bold text-gray-700">📝 Tùy chỉnh thông tin phiếu in</h3>
+                    <svg id="icon-info" class="w-5 h-5 text-gray-500 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg>
+                </div>
+                <div id="panel-info">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-600 mb-1">Tiêu đề tài liệu</label>
+                            <input type="text" id="input-title" value="BẢNG TỔNG HỢP CÔNG THỨC TOÁN HỌC" oninput="updatePrintInfo()" class="w-full px-3 py-1.5 border border-gray-300 rounded-lg text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-600 mb-1">Chân trang (Footer)</label>
+                            <input type="text" id="input-footer" value="Tài liệu lưu hành nội bộ - Chúc các em thi tốt!" oninput="updatePrintInfo()" class="w-full px-3 py-1.5 border border-gray-300 rounded-lg text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-600 mb-1">Điền Tên Học Sinh (Để trống = viết tay)</label>
+                            <input type="text" id="input-student" placeholder="Nhập tên..." oninput="updatePrintInfo()" class="w-full px-3 py-1.5 border border-gray-300 rounded-lg text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-600 mb-1">Lớp</label>
+                            <input type="text" id="input-class" placeholder="Nhập lớp..." oninput="updatePrintInfo()" class="w-full px-3 py-1.5 border border-gray-300 rounded-lg text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-600 mb-1">Chữ ký mờ (Watermark)</label>
+                            <input type="text" id="input-watermark" placeholder="TÀI LIỆU NỘI BỘ..." oninput="updatePrintInfo()" class="w-full px-3 py-1.5 border border-gray-300 rounded-lg text-sm">
+                        </div>
+                        <div class="flex items-center mt-5">
+                            <input type="checkbox" id="check-add-note" onchange="applyTheme()" checked class="w-4 h-4 text-blue-600 rounded">
+                            <label for="check-add-note" class="ml-2 text-xs font-semibold text-gray-600">Bật cột có kẻ dòng "Ghi chú" (hoặc chứa mã QR)</label>
+                        </div>
+                    </div>
+                    
+                    <!-- Hướng dẫn in CỰC KỲ QUAN TRỌNG giúp tránh mất lề -->
+                    <div class="mt-4 text-[13px] text-blue-800 bg-blue-50 p-3 rounded-lg border border-blue-200 leading-relaxed shadow-inner">
+                        <span class="font-bold text-red-600 text-sm">🚨 QUAN TRỌNG ĐỂ IN KHÔNG BỊ MẤT LỀ:</span><br>
+                        1. <b>Lề (Margins):</b> Ở cửa sổ in của trình duyệt, BẮT BUỘC chọn <b>Mặc định (Default)</b>. <span class="text-red-500 font-medium">Tuyệt đối không chọn "None" (Không có)</span> vì sẽ làm chữ dính sát mép giấy rất mất thẩm mỹ!<br>
+                        2. <b>Đồ họa nền (Background graphics):</b> Tích chọn để thấy màu sắc của các khối kiến thức.<br>
+                        3. <b>Số trang:</b> Tích chọn <b>Tiêu đề và chân trang (Headers and footers)</b> để tự động đánh số trang ở góc tờ giấy.
+                    </div>
+                </div>
+            </div>
+
+            <div id="status-message" class="text-center mt-3 text-sm font-medium text-red-500 hidden"></div>
+        </div>
+    </div>
+
+    <!-- Watermark -->
+    <div id="watermark-display" class="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 -rotate-45 text-[50pt] md:text-[70pt] font-black text-gray-300 pointer-events-none whitespace-nowrap select-none"></div>
+
+    <!-- Vùng hiển thị nội dung để In -->
+    <div id="print-area-wrapper" class="w-full">
+        <div id="print-area" class="container mx-auto bg-white min-h-screen shadow-xl print:shadow-none mb-10 print:mb-0 relative text-gray-800">
+            
+            <!-- Header In Sang Trọng -->
+            <div class="print-header-container hidden print:block">
+                <div class="border-b-2 border-gray-300 pb-3 mb-3 relative">
+                    <div id="display-title" class="title-print text-center uppercase outline-none text-slate-800" contenteditable="true" onblur="syncInputTitle()">BẢNG TỔNG HỢP CÔNG THỨC TOÁN HỌC</div>
+                    <!-- Đường nhấn màu sắc ở giữa -->
+                    <div class="absolute bottom-[-2px] left-1/2 transform -translate-x-1/2 w-20 h-[2px] bg-slate-800"></div>
+                </div>
+                
+                <div class="student-info-print flex justify-between items-end px-4 text-slate-700">
+                    <div class="flex items-end flex-1 mr-8">
+                        <span class="uppercase text-[0.7em] font-bold tracking-widest text-slate-500 mr-2 mb-1">Họ và tên</span> 
+                        <span id="display-student" class="inline-block border-b border-gray-400 flex-1 text-left text-slate-900 font-semibold px-2 pb-0.5 min-h-[1.5em]"></span>
+                    </div>
+                    <div class="flex items-end w-[35%]">
+                        <span class="uppercase text-[0.7em] font-bold tracking-widest text-slate-500 mr-2 mb-1">Lớp</span>
+                        <span id="display-class" class="inline-block border-b border-gray-400 flex-1 text-center text-slate-900 font-semibold px-2 pb-0.5 min-h-[1.5em]"></span>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="content-container" class="space-y-4 print:space-y-0 print:pb-10">
+                <div class="text-center text-gray-400 py-10 no-print italic content-cell">
+                    Chưa có dữ liệu...
+                </div>
+            </div>
+
+            <!-- Chân trang khi in -->
+            <div class="print-footer hidden print:flex content-cell">
+                <span id="display-footer" class="font-medium text-center">Tài liệu lưu hành nội bộ - Chúc các em thi tốt!</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- MÀN HÌNH CHẾ ĐỘ TRÌNH CHIẾU (SLIDESHOW)    -->
+    <!-- ========================================== -->
+    <div id="presentation-overlay" class="hidden fixed inset-0 bg-white z-[99999] flex items-center justify-center select-none">
+        
+        <!-- Nút Tắt, Zoom và Fullscreen (Cập nhật màu sắc nổi bật trên nền trắng) -->
+        <div class="absolute top-4 right-6 flex items-center gap-3 z-50 bg-slate-100/80 backdrop-blur-md px-4 py-2 rounded-full shadow-sm border border-slate-200">
+            <!-- Bộ điều khiển Zoom -->
+            <div class="flex items-center gap-2 border-r border-slate-300 pr-3 mr-1">
+                <button onclick="changePresentationZoom(-0.1)" class="p-1.5 hover:bg-slate-200 rounded-full text-slate-500 hover:text-slate-800 transition" title="Thu nhỏ chữ (Phím -)">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path></svg>
+                </button>
+                <span id="slide-zoom-text" class="text-sm font-mono w-12 text-center text-slate-700 font-bold">100%</span>
+                <button onclick="changePresentationZoom(0.1)" class="p-1.5 hover:bg-slate-200 rounded-full text-slate-500 hover:text-slate-800 transition" title="Phóng to chữ (Phím +)">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                </button>
+            </div>
+
+            <button onclick="toggleFullscreen()" class="p-1.5 hover:bg-slate-200 rounded-full text-slate-500 hover:text-blue-600 transition" title="Toàn màn hình (Phím F)">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l5-5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path></svg>
+            </button>
+            <button onclick="closePresentation()" class="p-1 hover:bg-red-100 rounded-full text-slate-500 hover:text-red-600 transition" title="Đóng (Phím ESC)">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        </div>
+        
+        <!-- Khung Slide Tràn Màn Hình (Bỏ các giới hạn kích thước, width/height 100%) -->
+        <div id="presentation-slide" class="relative bg-white w-full h-full flex flex-col p-8 md:p-16 lg:p-24 overflow-hidden transition-colors duration-300">
+            
+            <!-- Phần Tiêu đề Slide -->
+            <div class="border-b-4 border-slate-200 pb-4 mb-6 md:mb-10 flex flex-col justify-end min-h-[100px] lg:min-h-[140px]">
+                <h2 id="slide-topic" class="text-2xl md:text-3xl lg:text-4xl text-slate-500 uppercase tracking-widest font-bold mb-4 flex items-center gap-4">
+                    <span id="slide-icon" class="text-5xl lg:text-6xl"></span>
+                    <span id="slide-topic-text"></span>
+                </h2>
+                <h1 id="slide-name" class="text-4xl md:text-[55px] lg:text-[70px] text-slate-800 font-extrabold leading-tight"></h1>
+            </div>
+            
+            <!-- Phần Nội dung (Công thức & Ví dụ) -->
+            <div class="flex-1 flex flex-col justify-center items-center text-center space-y-8 md:space-y-16 w-full max-w-6xl mx-auto">
+                
+                <!-- Công thức chính -->
+                <div class="w-full bg-slate-50 border border-slate-200 rounded-3xl p-8 md:p-16 shadow-inner">
+                    <div id="slide-formula" class="text-slate-900 w-full overflow-x-auto slide-math-scroll py-2"></div>
+                </div>
+
+                <!-- Ví dụ -->
+                <div id="slide-example-container" class="w-full mt-10">
+                    <div class="text-xl md:text-2xl font-semibold text-slate-400 mb-6 uppercase tracking-widest">Ví dụ minh họa</div>
+                    <div id="slide-example" class="text-slate-700 w-full overflow-x-auto slide-math-scroll pb-4"></div>
+                </div>
+            </div>
+
+            <!-- Bộ đếm trang & Thanh tiến trình -->
+            <div class="absolute bottom-8 left-0 right-0 px-16 flex justify-between items-center text-slate-400 text-lg md:text-2xl font-medium">
+                <div class="flex items-center gap-3">
+                    <span class="keyboard-hint bg-slate-100 border border-slate-200 rounded-lg px-3 py-1 text-base">⬅️</span>
+                    <span>Lùi</span>
+                </div>
+                <div class="flex items-center gap-6 w-1/2">
+                    <div class="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
+                        <div id="slide-progress" class="h-full bg-blue-500 transition-all duration-300 w-0"></div>
+                    </div>
+                    <span id="slide-counter" class="w-24 text-right font-mono font-bold text-slate-500">1 / 10</span>
+                </div>
+                <div class="flex items-center gap-3">
+                    <span>Tiến</span>
+                    <span class="keyboard-hint bg-slate-100 border border-slate-200 rounded-lg px-3 py-1 text-base">➡️</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Vùng bấm điều hướng Trái / Phải (Màu tối để nổi trên nền trắng) -->
+        <div onclick="prevSlide()" class="absolute left-0 top-0 bottom-0 w-[12%] cursor-pointer group flex items-center justify-start pl-8 z-40" title="Trang trước (Phím mũi tên Trái)">
+            <div class="w-16 h-16 rounded-full bg-black/5 text-slate-700 flex items-center justify-center opacity-0 group-hover:opacity-100 group-hover:bg-black/10 transition duration-300">
+                <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M15 19l-7-7 7-7"></path></svg>
+            </div>
+        </div>
+        <div onclick="nextSlide()" class="absolute right-0 top-0 bottom-0 w-[12%] cursor-pointer group flex items-center justify-end pr-8 z-40" title="Trang sau (Phím mũi tên Phải)">
+            <div class="w-16 h-16 rounded-full bg-black/5 text-slate-700 flex items-center justify-center opacity-0 group-hover:opacity-100 group-hover:bg-black/10 transition duration-300">
+                <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M9 5l7 7-7 7"></path></svg>
+            </div>
+        </div>
+    </div>
+    <!-- ========================================== -->
+
+    <script>
+        let currentLoadedData = [];
+        let currentBaseFontSize = 9.5; // Kích thước chữ mặc định (đơn vị pt)
+        let presentationSlideIndex = 0; // Biến trạng thái cho chế độ trình chiếu
+        let presentationFontScale = 1; // Biến zoom font chữ cho trình chiếu
+
+        // --- HÀM ẨN HIỆN PANEL ---
+        function togglePanel(panelId, iconId) {
+            const panel = document.getElementById(panelId);
+            const icon = document.getElementById(iconId);
+            if (panel.classList.contains('hidden')) {
+                panel.classList.remove('hidden');
+                icon.style.transform = 'rotate(0deg)';
+            } else {
+                panel.classList.add('hidden');
+                icon.style.transform = 'rotate(180deg)';
+            }
+        }
+
+        // --- CẬP NHẬT FONT VÀ SIZE CHỮ ---
+        function applyFontSettings() {
+            const fontVal = document.getElementById('font-select').value;
+            document.documentElement.style.setProperty('--print-font-family', fontVal);
+        }
+
+        function changeBaseFontSize(delta) {
+            currentBaseFontSize += delta;
+            // Giới hạn size từ 6pt (siêu nhỏ) đến 16pt (siêu lớn)
+            if (currentBaseFontSize < 6) currentBaseFontSize = 6;
+            if (currentBaseFontSize > 16) currentBaseFontSize = 16;
+            
+            document.documentElement.style.setProperty('--print-font-size', currentBaseFontSize + 'pt');
+            document.getElementById('font-size-label').innerText = currentBaseFontSize + 'pt';
+        }
+
+        // --- DỮ LIỆU MẪU ---
+        const sampleData = [
+            { "Chủ đề": "1. Đạo hàm", "Tên công thức": "Lũy thừa", "Công thức": "$(x^n)' = n \\cdot x^{n-1}$", "Ví dụ": "$(x^3)' = 3x^2$", "Link bài tập": "https://vi.wikipedia.org/wiki/%C4%90%E1%BA%A1o_h%C3%A0m" },
+            { "Chủ đề": "1. Đạo hàm", "Tên công thức": "Căn bậc hai", "Công thức": "$(\\sqrt{x})' = \\frac{1}{2\\sqrt{x}}$", "Ví dụ": "$(\\sqrt{2x})' = \\frac{1}{\\sqrt{2x}}$" },
+            { "Chủ đề": "2. Lượng giác", "Tên công thức": "Sin & Cos", "Công thức": "$(\\sin x)' = \\cos x$<br>$(\\cos x)' = -\\sin x$", "Ví dụ": "$(\\sin 2x)' = 2\\cos 2x$", "Link bài tập": "https://vi.wikipedia.org/wiki/H%C3%A0m_s%E1%BB%91_l%C6%B0%E1%BB%A3ng_gi%C3%A1c" },
+            { "Chủ đề": "2. Lượng giác", "Tên công thức": "Tan & Cot", "Công thức": "$(\\tan x)' = \\frac{1}{\\cos^2 x}$<br>$(\\cot x)' = -\\frac{1}{\\sin^2 x}$", "Ví dụ": "$(\\tan 3x)' = \\frac{3}{\\cos^2 3x}$" },
+            { "Chủ đề": "3. Logarit & Mũ", "Tên công thức": "Tổng/Hiệu", "Công thức": "$\\log_a(xy) = \\log_a x + \\log_a y$<br>$\\log_a(\\frac{x}{y}) = \\log_a x - \\log_a y$", "Ví dụ": "$\\log_2(8) = \\log_2(4) + \\log_2(2)$" },
+            { "Chủ đề": "4. Tích phân", "Tên công thức": "Đa thức", "Công thức": "$\\int x^n dx = \\frac{x^{n+1}}{n+1} + C$", "Ví dụ": "$\\int x^2 dx = \\frac{x^3}{3} + C$" },
+            // Thêm data giả lập để xem chức năng cuộn trang nhiều dòng
+            { "Chủ đề": "5. Ví dụ kéo dài", "Tên công thức": "Kiểm tra", "Công thức": "$1+1=2$", "Ví dụ": "Trang in sẽ tự đẩy" },
+            { "Chủ đề": "5. Ví dụ kéo dài", "Tên công thức": "Kiểm tra", "Công thức": "$1+1=2$", "Ví dụ": "Trang in sẽ tự đẩy" },
+            { "Chủ đề": "5. Ví dụ kéo dài", "Tên công thức": "Kiểm tra", "Công thức": "$1+1=2$", "Ví dụ": "Trang in sẽ tự đẩy" },
+            { "Chủ đề": "5. Ví dụ kéo dài", "Tên công thức": "Kiểm tra", "Công thức": "$1+1=2$", "Ví dụ": "Trang in sẽ tự đẩy" },
+            { "Chủ đề": "5. Ví dụ kéo dài", "Tên công thức": "Kiểm tra", "Công thức": "$1+1=2$", "Ví dụ": "Trang in sẽ tự đẩy" },
+            { "Chủ đề": "5. Ví dụ kéo dài", "Tên công thức": "Kiểm tra", "Công thức": "$1+1=2$", "Ví dụ": "Trang in sẽ tự đẩy" },
+            { "Chủ đề": "5. Ví dụ kéo dài", "Tên công thức": "Kiểm tra", "Công thức": "$1+1=2$", "Ví dụ": "Trang in sẽ tự đẩy" },
+            { "Chủ đề": "5. Ví dụ kéo dài", "Tên công thức": "Kiểm tra", "Công thức": "$1+1=2$", "Ví dụ": "Trang in sẽ tự đẩy" },
+            { "Chủ đề": "5. Ví dụ kéo dài", "Tên công thức": "Kiểm tra", "Công thức": "$1+1=2$", "Ví dụ": "Trang in sẽ tự đẩy" }
+        ];
+
+        // --- ĐỒNG BỘ TIÊU ĐỀ ---
+        function updatePrintInfo() {
+            const titleInput = document.getElementById('input-title');
+            const footerInput = document.getElementById('input-footer');
+            const studentInput = document.getElementById('input-student');
+            const classInput = document.getElementById('input-class');
+            const watermarkInput = document.getElementById('input-watermark');
+
+            if (titleInput) document.getElementById('display-title').innerText = titleInput.value;
+            if (footerInput) document.getElementById('display-footer').innerText = footerInput.value;
+
+            if (studentInput) {
+                document.getElementById('display-student').innerText = studentInput.value || '';
+            }
+            if (classInput) {
+                document.getElementById('display-class').innerText = classInput.value || '';
+            }
+
+            if (watermarkInput) {
+                let watermarkText = watermarkInput.value;
+                let watermarkEl = document.getElementById('watermark-display');
+                watermarkEl.innerText = watermarkText;
+                
+                // Ở chế độ xem bình thường, nếu input rỗng sẽ tự ẩn vì nội dung innerText rỗng.
+                // Trạng thái bật/tắt (hiện) được kiểm soát an toàn tuyệt đối bởi CSS `@media` và `!important`.
+            }
+        }
+
+        function syncInputTitle() {
+            const displayTitle = document.getElementById('display-title');
+            const inputTitle = document.getElementById('input-title');
+            if (displayTitle && inputTitle) {
+                inputTitle.value = displayTitle.innerText;
+            }
+        }
+
+        updatePrintInfo(); // Khởi tạo lần đầu
+
+        // --- BỘ TỪ ĐIỂN ICON MỚI ---
+        const iconDictionaries = {
+            default: { keywords: { 'đạo hàm': '🚀', 'lượng giác': '🎡', 'tích phân': '🎢', 'logarit': '🍄', 'hàm số': '📈', 'hình': '🧊' }, fallback: ['🦄','🌸','🍀','🌟','🍓','🧸','🎈','🌻','🎀','🪄','🐧','🐬','🍩'] },
+            math: { fallback: ['📐', '📏', '🧮', '✖️', '➗', '➕', '➖', '💯', '🔢', '📊', '📈', '📉'] },
+            physics: { fallback: ['⚛️', '🧲', '🚀', '⚡', '🌌', '🔋', '💡', '🔭', '📡', '⚙️', '🛰️', '🪐'] },
+            chemistry: { fallback: ['🧪', '🧬', '🔬', '🧫', '⚗️', '🌡️', '💊', '☢️', '☣️', '💧', '🔥', '🧊'] },
+            cute_animals: { fallback: ['🐱', '🐶', '🐰', '🐼', '🐸', '🐯', '🦁', '🐮', '🐷', '🦊', '🐨', '🐥'] },
+            food: { fallback: ['🍔', '🍕', '🍦', '🍓', '🍩', '🍰', '🍫', '🍬', '🍭', '🍉', '🍿', '🍟'] },
+            space: { fallback: ['🪐', '👽', '🛰️', '🌠', '🌙', '☀️', '🌎', '☄️', '👨‍🚀', '🛸', '🌌', '🚀'] },
+            nature: { fallback: ['🌿', '🍄', '🍁', '🌺', '🌲', '🌴', '🌵', '🌱', '🌼', '🌻', '🌸', '☘️'] },
+            magic: { fallback: ['🔮', '🪄', '🌟', '✨', '🧙', '🧚', '🧞', '🧜', '🧝', '🧿', '🦄', '🦇'] },
+            minimal: { fallback: ['🔹', '🔸', '▪️', '▫️', '💠', '🔘', '🔻', '🔺', '⬛', '⬜', '⚪', '⚫'] },
+            faces: { fallback: ['😀','😎','🤓','🥳','🤔','🤩','😜','🤗','🫡','🤫','🤠','😇'] }
+        };
+
+        function getTopicIcon(topic) {
+            const setKey = document.getElementById('icon-set-select') ? document.getElementById('icon-set-select').value : 'default';
+            const iconSet = iconDictionaries[setKey] || iconDictionaries['default'];
+            const t = topic.toLowerCase();
+
+            // Ưu tiên tìm theo từ khóa nếu bộ icon có hỗ trợ (như bộ default)
+            if (iconSet.keywords) {
+                for (const [key, icon] of Object.entries(iconSet.keywords)) {
+                    if (t.includes(key)) return icon;
+                }
+            }
+
+            // Nếu không khớp từ khóa, lấy ngẫu nhiên một icon trong mảng fallback dựa trên mã băm của tên chủ đề
+            const fallbackArray = iconSet.fallback;
+            let hash = 0;
+            for (let i = 0; i < topic.length; i++) hash = topic.charCodeAt(i) + ((hash << 5) - hash);
+            return fallbackArray[Math.abs(hash) % fallbackArray.length];
+        }
+
+        const colorPalettes = [
+            { bg: 'bg-red-100 print:bg-red-100', text: 'text-red-800 print:text-red-900' },
+            { bg: 'bg-green-100 print:bg-green-100', text: 'text-green-800 print:text-green-900' },
+            { bg: 'bg-purple-100 print:bg-purple-100', text: 'text-purple-800 print:text-purple-900' },
+            { bg: 'bg-orange-100 print:bg-orange-100', text: 'text-orange-800 print:text-orange-900' },
+            { bg: 'bg-teal-100 print:bg-teal-100', text: 'text-teal-800 print:text-teal-900' }
+        ];
+        
+        const candyPalettes = [
+            { bg: 'bg-pink-100 print:bg-pink-100', text: 'text-pink-600 print:text-pink-700' },
+            { bg: 'bg-cyan-100 print:bg-cyan-100', text: 'text-cyan-700 print:text-cyan-800' },
+            { bg: 'bg-yellow-100 print:bg-yellow-100', text: 'text-amber-600 print:text-amber-700' },
+            { bg: 'bg-fuchsia-100 print:bg-fuchsia-100', text: 'text-fuchsia-700 print:text-fuchsia-800' },
+            { bg: 'bg-lime-100 print:bg-lime-100', text: 'text-lime-700 print:text-lime-800' }
+        ];
+
+        function applyTheme() {
+            if (currentLoadedData.length > 0) renderData(currentLoadedData);
+        }
+
+        // --- ĐỒNG BỘ HIỂN THỊ CỘT & HƯỚNG GIẤY CHUẨN MỰC ---
+        function applyOrientation() {
+            const mode = document.getElementById('orientation-select').value;
+            const styleEl = document.getElementById('dynamic-print-style');
+            
+            // Xóa CSS cũ
+            document.body.classList.remove('landscape-mode', 'portrait-1-mode');
+            
+            let printCss = '';
+            // Ghi chú: Dùng lề margin 15mm (1.5cm) chuẩn, thay thế cho max-width của Tailwind
+            if (mode === 'landscape') {
+                document.body.classList.add('landscape-mode');
+                printCss = `
+                    @media print { @page { size: A4 landscape; margin: 15mm; } #print-area { column-count: 2 !important; } }
+                    body.preview-active #print-area { width: 297mm !important; min-height: 210mm !important; column-count: 2 !important; padding: 15mm !important; }
+                    body.preview-active .print-footer { bottom: 10mm; left: 15mm; right: 15mm; }
+                `;
+            } else if (mode === 'portrait-1') {
+                document.body.classList.add('portrait-1-mode');
+                printCss = `
+                    @media print { @page { size: A4 portrait; margin: 15mm; } #print-area { column-count: 1 !important; } }
+                    body.preview-active #print-area { width: 210mm !important; min-height: 297mm !important; column-count: 1 !important; padding: 15mm !important; }
+                    body.preview-active .print-footer { bottom: 10mm; left: 15mm; right: 15mm; }
+                `;
+            } else {
+                printCss = `
+                    @media print { @page { size: A4 portrait; margin: 15mm; } #print-area { column-count: 2 !important; } }
+                    body.preview-active #print-area { width: 210mm !important; min-height: 297mm !important; column-count: 2 !important; padding: 15mm !important; }
+                    body.preview-active .print-footer { bottom: 10mm; left: 15mm; right: 15mm; }
+                `;
+            }
+            
+            styleEl.innerHTML = printCss;
+            
+            if (currentLoadedData.length > 0) renderData(currentLoadedData);
+        }
+
+        let previewZoom = 1;
+        function changeZoom(delta) {
+            previewZoom += delta;
+            if (previewZoom < 0.5) previewZoom = 0.5;
+            if (previewZoom > 2) previewZoom = 2;
+            document.documentElement.style.setProperty('--preview-zoom', previewZoom);
+            document.getElementById('zoom-text').innerText = Math.round(previewZoom * 100) + '%';
+            const wrapper = document.getElementById('print-area-wrapper');
+            wrapper.style.minHeight = previewZoom > 1 ? `calc(100vh + ${(previewZoom - 1) * 1000}px)` : '100vh';
+        }
+
+        function togglePreview() {
+            document.body.classList.toggle('preview-active');
+            const controls = document.getElementById('preview-controls');
+            if (document.body.classList.contains('preview-active')) {
+                controls.classList.remove('hidden');
+                controls.classList.add('flex');
+                previewZoom = 1; changeZoom(0); 
+                window.scrollTo(0, 0);
+            } else {
+                controls.classList.add('hidden');
+                controls.classList.remove('flex');
+            }
+        }
+
+        function triggerPrint() {
+            if (!currentLoadedData.length) return showMessage("⚠️ Không có dữ liệu để in!", true);
+            if (typeof MathJax !== 'undefined' && MathJax.typesetPromise) {
+                MathJax.typesetPromise().then(() => window.print()).catch(() => window.print());
+            } else window.print();
+        }
+
+        function downloadPDF() {
+            if (!currentLoadedData.length) return showMessage("⚠️ Không có dữ liệu để tải PDF!", true);
+            alert("💡 MẸO IN PDF KHÔNG BỊ CẮT LỀ:\n1. Bắt buộc để 'Lề (Margins)' là 'Mặc định (Default)'. Không được chọn None.\n2. Bật 'Đồ họa nền' (Background graphics)\n3. Để đánh số trang, bật 'Tiêu đề & chân trang'.");
+            triggerPrint();
+        }
+
+        function showMessage(msg, isError = false) {
+            let statusEl = document.getElementById('status-message');
+            if (!statusEl) {
+                statusEl = document.createElement('div');
+                statusEl.id = 'status-message';
+                document.body.appendChild(statusEl);
+            }
+            statusEl.textContent = msg;
+            statusEl.className = `text-center mt-3 text-sm font-medium block ${isError ? 'text-red-500' : 'text-green-500'}`;
+            if (statusEl.timeoutId) clearTimeout(statusEl.timeoutId);
+            statusEl.timeoutId = setTimeout(() => statusEl.classList.add('hidden'), 5000);
+        }
+
+        function formatMath(text) {
+            if (!text && text !== 0) return "";
+            return text.toString().replace(/\n/g, '<br>');
+        }
+
+        function renderData(data) {
+            currentLoadedData = data; 
+            const container = document.getElementById('content-container');
+            container.innerHTML = ''; 
+            
+            const theme = document.getElementById('theme-select').value;
+            const mode = document.getElementById('orientation-select').value;
+            const isPortraitTwoCol = (mode === 'portrait'); // Chỉ vô hiệu hóa ở chế độ dọc 2 cột siêu khít
+            const isLandscape = (mode === 'landscape');     // Chế độ in ngang
+            
+            let addNoteColumn = document.getElementById('check-add-note') ? document.getElementById('check-add-note').checked : true;
+            // Tự động vô hiệu hóa cột ghi chú nếu ở chế độ dọc 2 cột HOẶC chế độ ngang
+            if (isPortraitTwoCol || isLandscape) addNoteColumn = false; 
+
+            const groupedData = {};
+            data.forEach(row => {
+                const topic = row['Chủ đề'] || row['Chu de'] || 'Khác';
+                if (!groupedData[topic]) groupedData[topic] = [];
+                groupedData[topic].push(row);
+            });
+
+            let topicIndex = 0;
+            for (const [topic, items] of Object.entries(groupedData)) {
+                const groupDiv = document.createElement('div');
+                groupDiv.className = 'topic-group bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden print:mb-1';
+                
+                let headerClass = "border-gray-200 print:border-gray-400 ";
+                let textThemeClass = ""; // Biến chứa màu chữ động theo chủ đề
+                
+                switch (theme) {
+                    case 'mono': 
+                        headerClass += "bg-gray-200 print:bg-gray-200 text-black"; 
+                        textThemeClass = "text-black print:text-black";
+                        break;
+                    case 'colorful': 
+                        const palette = colorPalettes[topicIndex % colorPalettes.length];
+                        headerClass += `${palette.bg} ${palette.text}`; 
+                        textThemeClass = palette.text;
+                        break;
+                    case 'pink': 
+                        headerClass += "bg-pink-100 print:bg-pink-100 text-pink-900"; 
+                        textThemeClass = "text-pink-900 print:text-pink-900";
+                        break;
+                    case 'ocean': 
+                        headerClass += "bg-gradient-to-r from-cyan-100 to-blue-200 text-cyan-900"; 
+                        textThemeClass = "text-cyan-900 print:text-cyan-900";
+                        break;
+                    // --- CÁC THEME MỚI ---
+                    case 'sunflower':
+                        headerClass += "bg-yellow-200 print:bg-yellow-200 text-yellow-900 border-yellow-300";
+                        textThemeClass = "text-yellow-900 print:text-yellow-900";
+                        break;
+                    case 'matcha':
+                        headerClass += "bg-lime-200 print:bg-lime-200 text-lime-900 border-lime-300";
+                        textThemeClass = "text-lime-900 print:text-lime-900";
+                        break;
+                    case 'lavender':
+                        headerClass += "bg-indigo-200 print:bg-indigo-200 text-indigo-900 border-indigo-300";
+                        textThemeClass = "text-indigo-900 print:text-indigo-900";
+                        break;
+                    case 'macaron':
+                        headerClass += "bg-rose-100 print:bg-rose-100 text-teal-800 border-rose-200";
+                        textThemeClass = "text-teal-800 print:text-teal-900";
+                        break;
+                    case 'mint':
+                        headerClass += "bg-emerald-100 print:bg-emerald-100 text-emerald-900 border-emerald-200";
+                        textThemeClass = "text-emerald-900 print:text-emerald-900";
+                        break;
+                    case 'cherry':
+                        headerClass += "bg-red-200 print:bg-red-200 text-red-900 border-red-300";
+                        textThemeClass = "text-red-900 print:text-red-900";
+                        break;
+                    case 'coffee':
+                        headerClass += "bg-stone-200 print:bg-stone-200 text-stone-800 border-stone-300";
+                        textThemeClass = "text-stone-800 print:text-stone-900";
+                        break;
+                    case 'autumn':
+                        headerClass += "bg-orange-200 print:bg-orange-200 text-orange-900 border-orange-300";
+                        textThemeClass = "text-orange-900 print:text-orange-900";
+                        break;
+                    case 'candy':
+                        const cPalette = candyPalettes[topicIndex % candyPalettes.length];
+                        headerClass += `${cPalette.bg} ${cPalette.text}`; 
+                        textThemeClass = cPalette.text;
+                        break;
+                    case 'dark-modern':
+                        headerClass += "bg-gray-800 print:bg-gray-800 text-cyan-300 border-gray-700";
+                        textThemeClass = "text-gray-800 print:text-gray-900"; // Trong nội dung bảng vẫn giữ chữ đen để dễ đọc
+                        groupDiv.className = 'topic-group bg-white rounded-lg shadow-sm border-2 border-gray-800 overflow-hidden print:mb-1';
+                        break;
+                    // ---------------------
+                    default: 
+                        headerClass += "bg-blue-100 print:bg-blue-100 text-blue-900"; 
+                        textThemeClass = "text-blue-900 print:text-blue-900";
+                        break;
+                }
+
+                let tableRows = '';
+                let hasExample = items.some(item => item['Ví dụ'] || item['Vi du']);
+                if (isPortraitTwoCol) hasExample = false; // Tự động bỏ qua cột ví dụ nếu dọc 2 cột
+
+                items.forEach((item, index) => {
+                    const name = item['Tên công thức'] || item['Ten cong thuc'] || '';
+                    const formula = item['Công thức'] || item['Cong thuc'] || '';
+                    const example = item['Ví dụ'] || item['Vi du'] || '';
+                    
+                    // Tìm kiếm trường Link (hỗ trợ nhiều tên phổ biến cho cột 5)
+                    const documentLink = item['Link'] || item['Link bài tập'] || item['Link tải liệu'] || item['QR'] || item['Link tài liệu'] || '';
+                    
+                    let nameWidth = 'w-[25%]', formulaWidth = 'w-[75%]', exampleWidth = 'w-[35%]', noteWidth = 'w-[25%]';
+                    if (hasExample && addNoteColumn) { nameWidth = 'w-[20%]'; formulaWidth = 'w-[40%]'; exampleWidth = 'w-[25%]'; noteWidth = 'w-[15%]'; } 
+                    else if (hasExample && !addNoteColumn) { nameWidth = 'w-[25%]'; formulaWidth = 'w-[40%]'; exampleWidth = 'w-[35%]'; } 
+                    else if (!hasExample && addNoteColumn) { nameWidth = 'w-[20%]'; formulaWidth = 'w-[60%]'; noteWidth = 'w-[20%]'; }
+                    
+                    let exampleColHTML = hasExample ? `<td class="content-cell text-gray-800 ${exampleWidth} math-content align-top print:border-gray-400 border-l border-gray-100">${formatMath(example)}</td>` : '';
+                    
+                    // Logic xử lý hiển thị Ghi chú hoặc mã QR
+                    let noteContentHTML = `<div class="flex flex-col w-full h-full min-h-[20px] pt-3"><div class="border-b border-dashed border-gray-300 w-full mb-3"></div><div class="border-b border-dashed border-gray-300 w-full mb-3"></div></div>`;
+                    
+                    if (documentLink && addNoteColumn) {
+                        noteContentHTML = `
+                            <div class="flex flex-col items-center justify-center h-full py-1">
+                                <div class="qr-code-container w-10 h-10 print:w-9 print:h-9 mx-auto flex justify-center items-center" data-link="${documentLink}"></div>
+                                <span class="text-[6.5pt] text-gray-500 mt-1 text-center leading-tight">Quét xem<br>bài tập</span>
+                            </div>`;
+                    }
+
+                    let noteColHTML = addNoteColumn ? `<td class="content-cell align-top print:border-gray-400 border-l border-gray-100 ${noteWidth} relative">${noteContentHTML}</td>` : '';
+
+                    tableRows += `
+                        <tr class="border-b border-gray-100 last:border-0 print:border-gray-400">
+                            <td class="content-cell font-bold ${textThemeClass} ${nameWidth} bg-gray-50 print:bg-transparent align-top print:border-gray-400 border-r border-gray-100">${name}</td>
+                            <td class="content-cell ${textThemeClass} ${formulaWidth} math-content align-top print:border-gray-400">${formatMath(formula)}</td>
+                            ${exampleColHTML} ${noteColHTML}
+                        </tr>
+                    `;
+                });
+
+                groupDiv.innerHTML = `
+                    <div class="theme-header ${headerClass} px-2 py-1 border-b flex items-center">
+                        <span class="mr-2 text-lg leading-none">${getTopicIcon(topic)}</span>
+                        <h3 class="font-bold uppercase m-0 leading-tight">${topic}</h3>
+                    </div>
+                    <table class="data-table w-full"><tbody>${tableRows}</tbody></table>
+                `;
+                container.appendChild(groupDiv);
+                topicIndex++;
+            }
+
+            // Tiến hành sinh mã QR sau khi đã cập nhật HTML vào DOM
+            if (typeof QRCode !== 'undefined') {
+                document.querySelectorAll('.qr-code-container').forEach(el => {
+                    if (!el.hasAttribute('data-qr-rendered')) {
+                        new QRCode(el, {
+                            text: el.getAttribute('data-link'),
+                            width: 128,  // Sinh ảnh kích thước lớn để độ nét cao khi in, CSS sẽ tự scale nhỏ lại
+                            height: 128,
+                            colorDark : "#000000",
+                            colorLight : "#ffffff",
+                            correctLevel : QRCode.CorrectLevel.L
+                        });
+                        el.setAttribute('data-qr-rendered', 'true');
+                    }
+                });
+            }
+
+            // Kích hoạt MathJax để vẽ công thức Toán
+            if (typeof MathJax !== 'undefined' && MathJax.typesetPromise) {
+                MathJax.typesetPromise([container]).catch(err => console.error(err));
+            } else {
+                window.addEventListener('load', () => { if (typeof MathJax !== 'undefined') MathJax.typesetPromise([container]); });
+            }
+        }
+
+        // --- HÀM TẠO PROMPT AI CHUYÊN NGHIỆP ---
+        function generateAdvancedPrompt() {
+            const subject = document.getElementById('prompt-subject').value;
+            const grade = document.getElementById('prompt-grade').value;
+            const topic = document.getElementById('prompt-topic').value || "[Chủ đề cụ thể]";
+            
+            const advancedPrompt = `Hãy đóng vai một chuyên gia giáo dục và biên soạn tài liệu học thuật. 
+Hãy tạo cho tôi một bảng tổng hợp kiến thức đầy đủ, tinh gọn và hiệu quả nhất cho môn ${subject}, ${grade}.
+
+CHỦ ĐỀ CẦN TỔNG HỢP: ${topic}
+
+YÊU CẦU ĐỊNH DẠNG:
+Hãy xuất kết quả dưới dạng bảng Markdown có 5 cột: "Chủ đề" | "Tên công thức" | "Công thức" | "Ví dụ" | "Link bài tập".
+
+QUY TẮC NỘI DUNG (QUAN TRỌNG):
+1. Cột "Chủ đề": Phân chia kiến thức logic (vd: 1. Đạo hàm hàm số, 2. Đạo hàm lượng giác...).
+2. Cột "Công thức": Viết bằng cú pháp LaTeX chuẩn, kẹp trong cặp dấu $ $. Ví dụ: $\\frac{a}{b}$.
+3. Cột "Ví dụ": Viết ví dụ áp dụng ngắn gọn nhất, cũng sử dụng LaTeX trong $ $.
+4. Cột "Link bài tập": Cung cấp đường dẫn web (URL) tới một tài liệu hoặc bài tập mẫu liên quan. Nếu không có thì bỏ trống.
+5. Nếu một ô cần xuống dòng, bắt buộc sử dụng thẻ <br> thay vì phím Enter.
+6. Nội dung phải cực kỳ tinh gọn, thiết kế tối ưu hiển thị khổ giấy A4.`;
+
+            const resultDiv = document.getElementById('advanced-prompt-result');
+            resultDiv.innerText = advancedPrompt;
+            resultDiv.classList.remove('hidden');
+            document.getElementById('copy-advanced-btn').classList.remove('hidden');
+            
+            showMessage("✨ Đã sinh Prompt xong! Bạn hãy copy và dán vào AI nhé.");
+        }
+
+        function copyAdvancedPrompt() {
+            const promptText = document.getElementById('advanced-prompt-result').innerText;
+            const el = document.createElement('textarea');
+            el.value = promptText;
+            document.body.appendChild(el);
+            el.select();
+            document.execCommand('copy');
+            document.body.removeChild(el);
+            showMessage("📋 Đã copy Prompt vào bộ nhớ tạm!");
+        }
+
+        function loadSampleData() { renderData(sampleData); showMessage("Đã tải dữ liệu mẫu (có kèm Link QR test)!"); }
+
+        document.getElementById('excel-file').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, {type: 'array'});
+                    const json = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
+                    if(json.length === 0) return showMessage("File Excel rỗng", true);
+                    renderData(json); showMessage("Tải file Excel thành công!");
+                } catch (error) { showMessage("Lỗi đọc file.", true); }
+            };
+            reader.readAsArrayBuffer(file);
+        });
+
+        function loadFromGoogleSheets() {
+            const urlInput = document.getElementById('gsheet-link').value.trim();
+            if (!urlInput) return showMessage("Vui lòng nhập link!", true);
+            const idMatch = urlInput.match(/\/d\/([a-zA-Z0-9-_]+)/);
+            if (!idMatch) return showMessage("Link không hợp lệ.", true);
+            
+            Papa.parse(`https://docs.google.com/spreadsheets/d/${idMatch[1]}/export?format=csv`, {
+                download: true, header: true,
+                complete: function(results) {
+                    if (results.data && results.data.length > 0) { renderData(results.data); showMessage("Tải thành công!"); } 
+                    else showMessage("Không thể đọc dữ liệu.", true);
+                },
+                error: function(err) { showMessage("Lỗi mạng.", true); }
+            });
+        }
+        
+        // Cài đặt cấu hình mặc định (Font và hướng giấy) lúc đầu
+        applyFontSettings();
+        applyOrientation();
+        
+        // Khởi tạo trạng thái icon cho panel bị ẩn (Prompt)
+        document.getElementById('icon-prompt').style.transform = 'rotate(180deg)';
+
+        // ==========================================
+        // CÁC HÀM XỬ LÝ CHẾ ĐỘ TRÌNH CHIẾU 16:9
+        // ==========================================
+        
+        function changePresentationZoom(delta) {
+            presentationFontScale += delta;
+            if (presentationFontScale < 0.5) presentationFontScale = 0.5;
+            if (presentationFontScale > 3) presentationFontScale = 3; // Giới hạn tối đa 300%
+            document.getElementById('presentation-slide').style.setProperty('--slide-font-scale', presentationFontScale);
+            document.getElementById('slide-zoom-text').innerText = Math.round(presentationFontScale * 100) + '%';
+        }
+
+        function openPresentation() {
+            if (!currentLoadedData || currentLoadedData.length === 0) {
+                return showMessage("⚠️ Chưa có dữ liệu để trình chiếu. Vui lòng tải dữ liệu trước!", true);
+            }
+            presentationSlideIndex = 0;
+            
+            // Reset zoom chữ khi mở trình chiếu
+            presentationFontScale = 1;
+            document.getElementById('presentation-slide').style.setProperty('--slide-font-scale', 1);
+            document.getElementById('slide-zoom-text').innerText = '100%';
+            
+            document.getElementById('presentation-overlay').classList.remove('hidden');
+            document.body.classList.add('presentation-active'); // Chống scroll body
+            renderPresentationSlide();
+            
+            // Thêm lắng nghe sự kiện bàn phím
+            document.addEventListener('keydown', handlePresentationKeys);
+        }
+
+        function closePresentation() {
+            // Thoát fullscreen nếu đang bật
+            if (document.fullscreenElement || document.webkitFullscreenElement) {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen().catch(err => console.log(err));
+                } else if (document.webkitExitFullscreen) { /* Safari */
+                    document.webkitExitFullscreen();
+                }
+            }
+            document.getElementById('presentation-overlay').classList.add('hidden');
+            document.body.classList.remove('presentation-active');
+            document.removeEventListener('keydown', handlePresentationKeys);
+        }
+
+        function toggleFullscreen() {
+            const overlay = document.getElementById('presentation-overlay');
+            if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+                if (overlay.requestFullscreen) {
+                    overlay.requestFullscreen().catch(err => console.log(err));
+                } else if (overlay.webkitRequestFullscreen) { /* Safari */
+                    overlay.webkitRequestFullscreen();
+                } else if (overlay.msRequestFullscreen) { /* IE11 */
+                    overlay.msRequestFullscreen();
+                }
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                } else if (document.webkitExitFullscreen) { /* Safari */
+                    document.webkitExitFullscreen();
+                } else if (document.msExitFullscreen) { /* IE11 */
+                    document.msExitFullscreen();
+                }
+            }
+        }
+
+        function renderPresentationSlide() {
+            if (presentationSlideIndex < 0 || presentationSlideIndex >= currentLoadedData.length) return;
+            
+            const data = currentLoadedData[presentationSlideIndex];
+            const topic = data['Chủ đề'] || data['Chu de'] || 'Khác';
+            const name = data['Tên công thức'] || data['Ten cong thuc'] || '';
+            const formula = data['Công thức'] || data['Cong thuc'] || '';
+            const example = data['Ví dụ'] || data['Vi du'] || '';
+
+            // Render Title & Icon
+            document.getElementById('slide-icon').innerText = getTopicIcon(topic);
+            document.getElementById('slide-topic-text').innerText = topic;
+            document.getElementById('slide-name').innerText = name;
+            
+            // Render Math Formula & Example
+            const formulaEl = document.getElementById('slide-formula');
+            formulaEl.innerHTML = formatMath(formula);
+            
+            const exampleContainer = document.getElementById('slide-example-container');
+            const exampleEl = document.getElementById('slide-example');
+            
+            if (example && example.trim() !== '') {
+                exampleContainer.classList.remove('hidden');
+                exampleEl.innerHTML = formatMath(example);
+            } else {
+                exampleContainer.classList.add('hidden');
+            }
+
+            // Update Counter & Progress Bar
+            document.getElementById('slide-counter').innerText = `${presentationSlideIndex + 1} / ${currentLoadedData.length}`;
+            const progressPercent = ((presentationSlideIndex + 1) / currentLoadedData.length) * 100;
+            document.getElementById('slide-progress').style.width = `${progressPercent}%`;
+
+            // Yêu cầu MathJax render lại công thức cho các thẻ vừa thay đổi HTML
+            if (typeof MathJax !== 'undefined' && MathJax.typesetPromise) {
+                MathJax.typesetPromise([formulaEl, exampleEl]).catch(err => console.error(err));
+            }
+        }
+
+        function nextSlide() {
+            if (presentationSlideIndex < currentLoadedData.length - 1) {
+                presentationSlideIndex++;
+                renderPresentationSlide();
+            }
+        }
+
+        function prevSlide() {
+            if (presentationSlideIndex > 0) {
+                presentationSlideIndex--;
+                renderPresentationSlide();
+            }
+        }
+
+        function handlePresentationKeys(e) {
+            if (e.key === 'ArrowRight' || e.key === ' ') {
+                nextSlide();
+            } else if (e.key === 'ArrowLeft') {
+                prevSlide();
+            } else if (e.key === 'Escape') {
+                closePresentation();
+            } else if (e.key.toLowerCase() === 'f') {
+                toggleFullscreen();
+            } else if (e.key === '=' || e.key === '+') {
+                changePresentationZoom(0.1);
+            } else if (e.key === '-' || e.key === '_') {
+                changePresentationZoom(-0.1);
+            }
+        }
+
+    </script>
+</body>
+</html>
