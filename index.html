@@ -117,6 +117,19 @@
         @media screen { body:not(.preview-active) #watermark-display { display: none !important; } }
         .qr-code-container img, .qr-code-container canvas { width: 100% !important; height: auto !important; object-fit: contain; }
 
+        /* --- CSS DÀNH CHO CHẾ ĐỘ SỬA LỖI (EDIT MODE) --- */
+        .editing-mode td.editable-cell {
+            background-color: #f8fafc !important;
+            border: 2px dashed #93c5fd !important;
+            cursor: text;
+            outline: none;
+        }
+        .editing-mode td.editable-cell:focus {
+            background-color: #fff !important;
+            border: 2px solid #3b82f6 !important;
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+        }
+
         /* --- CHẾ ĐỘ TRÌNH CHIẾU (PRESENTATION MODE) CSS --- */
         body.presentation-active { overflow: hidden; } /* Chống cuộn trang web khi đang trình chiếu */
         #presentation-slide { font-family: 'Roboto', sans-serif !important; }
@@ -132,6 +145,27 @@
         @media (min-width: 768px) {
             #slide-formula { font-size: calc(60px * var(--slide-font-scale, 1)); }
             #slide-example { font-size: calc(45px * var(--slide-font-scale, 1)); }
+        }
+
+        /* --- CHẾ ĐỘ TỐI KHI TRÌNH CHIẾU (DARK MODE PRESENTATION) --- */
+        body.presentation-dark #presentation-slide {
+            background-color: #0f172a !important; /* Slate-900 */
+        }
+        body.presentation-dark #slide-topic-text,
+        body.presentation-dark #slide-name,
+        body.presentation-dark .text-slate-800,
+        body.presentation-dark .text-slate-700,
+        body.presentation-dark .text-slate-500,
+        body.presentation-dark .text-slate-400 {
+            color: #f8fafc !important; /* Chữ trắng sáng */
+        }
+        body.presentation-dark .bg-slate-50 {
+            background-color: #1e293b !important; /* Slate-800 cho khung viền */
+            border-color: #334155 !important;
+        }
+        /* Ép công thức Toán (MathJax) sang màu Vàng */
+        body.presentation-dark #presentation-slide mjx-container {
+            color: #fde047 !important; /* Yellow-300 */
         }
     </style>
 
@@ -188,9 +222,15 @@
 
             <!-- Nút Hành động chính -->
             <div class="mt-6 flex flex-wrap justify-center gap-3">
-                <button onclick="loadSampleData()" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-2 px-5 rounded-full text-sm shadow-sm transition">Tải dữ liệu mẫu</button>
-                <button onclick="togglePreview()" class="bg-teal-500 hover:bg-teal-600 text-white font-bold py-2 px-5 rounded-full shadow-md text-sm transition">👁️ Xem trước bản in</button>
-                <button onclick="triggerPrint()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-5 rounded-full shadow-md text-sm transition">🖨️ In / Xuất PDF</button>
+                <button onclick="loadSampleData()" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-2 px-4 rounded-full text-sm shadow-sm transition">Tải dữ liệu mẫu</button>
+                
+                <!-- NÚT SỬA LỖI VĂN BẢN MỚI -->
+                <button id="btn-edit-mode" onclick="toggleEditMode()" class="bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-4 rounded-full shadow-md text-sm transition flex items-center">
+                    ✏️ Bật sửa lỗi
+                </button>
+
+                <button onclick="togglePreview()" class="bg-teal-500 hover:bg-teal-600 text-white font-bold py-2 px-4 rounded-full shadow-md text-sm transition">👁️ Xem trước in</button>
+                <button onclick="triggerPrint()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-full shadow-md text-sm transition">🖨️ Xuất PDF</button>
                 <!-- NÚT TRÌNH CHIẾU -->
                 <button onclick="openPresentation()" class="bg-amber-500 hover:bg-amber-600 text-white font-bold py-2 px-6 rounded-full shadow-md text-sm transition flex items-center">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
@@ -404,7 +444,7 @@
                 </div>
             </div>
             
-            <div id="content-container" class="space-y-4 print:space-y-0 print:pb-10">
+            <div id="content-container" class="space-y-4 print:space-y-0 print:pb-10 transition-all duration-300">
                 <div class="text-center text-gray-400 py-10 no-print italic content-cell">
                     Chưa có dữ liệu...
                 </div>
@@ -420,25 +460,28 @@
     <!-- ========================================== -->
     <!-- MÀN HÌNH CHẾ ĐỘ TRÌNH CHIẾU (SLIDESHOW)    -->
     <!-- ========================================== -->
-    <div id="presentation-overlay" class="hidden fixed inset-0 bg-white z-[99999] flex items-center justify-center select-none">
+    <div id="presentation-overlay" class="hidden fixed inset-0 bg-white z-[99999] flex items-center justify-center select-none transition-colors duration-500">
         
-        <!-- Nút Tắt, Zoom và Fullscreen (Cập nhật màu sắc nổi bật trên nền trắng) -->
-        <div class="absolute top-4 right-6 flex items-center gap-3 z-50 bg-slate-100/80 backdrop-blur-md px-4 py-2 rounded-full shadow-sm border border-slate-200">
+        <!-- Nút Tắt, Zoom, Dark Mode và Fullscreen -->
+        <div class="absolute top-4 right-6 flex items-center gap-3 z-50 bg-slate-100/80 dark-presentation-panel backdrop-blur-md px-4 py-2 rounded-full shadow-sm border border-slate-200 transition-colors duration-300">
             <!-- Bộ điều khiển Zoom -->
-            <div class="flex items-center gap-2 border-r border-slate-300 pr-3 mr-1">
-                <button onclick="changePresentationZoom(-0.1)" class="p-1.5 hover:bg-slate-200 rounded-full text-slate-500 hover:text-slate-800 transition" title="Thu nhỏ chữ (Phím -)">
+            <div class="flex items-center gap-2 border-r border-slate-300 pr-3 mr-1 dark-border-r">
+                <button onclick="changePresentationZoom(-0.1)" class="p-1.5 hover:bg-slate-200 dark-hover-btn rounded-full text-slate-500 dark-text-btn transition" title="Thu nhỏ chữ (Phím -)">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path></svg>
                 </button>
-                <span id="slide-zoom-text" class="text-sm font-mono w-12 text-center text-slate-700 font-bold">100%</span>
-                <button onclick="changePresentationZoom(0.1)" class="p-1.5 hover:bg-slate-200 rounded-full text-slate-500 hover:text-slate-800 transition" title="Phóng to chữ (Phím +)">
+                <span id="slide-zoom-text" class="text-sm font-mono w-12 text-center text-slate-700 dark-text-main font-bold">100%</span>
+                <button onclick="changePresentationZoom(0.1)" class="p-1.5 hover:bg-slate-200 dark-hover-btn rounded-full text-slate-500 dark-text-btn transition" title="Phóng to chữ (Phím +)">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
                 </button>
             </div>
 
-            <button onclick="toggleFullscreen()" class="p-1.5 hover:bg-slate-200 rounded-full text-slate-500 hover:text-blue-600 transition" title="Toàn màn hình (Phím F)">
+            <button onclick="toggleSlideDarkMode()" class="p-1.5 hover:bg-slate-200 dark-hover-btn rounded-full text-slate-500 dark-text-btn hover:text-indigo-600 transition" title="Giao diện Tối/Sáng (Phím D)">
+                <svg id="icon-moon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+            </button>
+            <button onclick="toggleFullscreen()" class="p-1.5 hover:bg-slate-200 dark-hover-btn rounded-full text-slate-500 dark-text-btn hover:text-blue-600 transition" title="Toàn màn hình (Phím F)">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l5-5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path></svg>
             </button>
-            <button onclick="closePresentation()" class="p-1 hover:bg-red-100 rounded-full text-slate-500 hover:text-red-600 transition" title="Đóng (Phím ESC)">
+            <button onclick="closePresentation()" class="p-1 hover:bg-red-100 dark-hover-red rounded-full text-slate-500 dark-text-btn hover:text-red-600 transition" title="Đóng (Phím ESC)">
                 <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
             </button>
         </div>
@@ -447,56 +490,56 @@
         <div id="presentation-slide" class="relative bg-white w-full h-full flex flex-col p-8 md:p-12 lg:p-16 overflow-hidden transition-colors duration-300">
             
             <!-- Phần Tiêu đề Slide -->
-            <div class="border-b-4 border-slate-200 pb-4 mb-4 md:mb-6 flex flex-col justify-end">
-                <h2 id="slide-topic" class="text-2xl md:text-3xl lg:text-4xl text-slate-500 uppercase tracking-widest font-bold mb-4 flex items-center gap-4">
+            <div class="border-b-4 border-slate-200 pb-4 mb-4 md:mb-6 flex flex-col justify-end slide-dark-border transition-colors duration-300">
+                <h2 id="slide-topic" class="text-2xl md:text-3xl lg:text-4xl text-slate-500 uppercase tracking-widest font-bold mb-4 flex items-center gap-4 transition-colors duration-300">
                     <span id="slide-icon" class="text-5xl lg:text-6xl"></span>
-                    <span id="slide-topic-text"></span>
+                    <span id="slide-topic-text" class="math-content"></span>
                 </h2>
-                <h1 id="slide-name" class="text-4xl md:text-[55px] lg:text-[70px] text-slate-800 font-extrabold leading-tight"></h1>
+                <h1 id="slide-name" class="text-4xl md:text-[55px] lg:text-[70px] text-slate-800 font-extrabold leading-tight math-content transition-colors duration-300"></h1>
             </div>
             
             <!-- Phần Nội dung (Công thức & Ví dụ) đẩy lên trên -->
             <div class="flex-1 flex flex-col justify-start items-start text-left space-y-6 md:space-y-10 w-full mt-4 mx-auto overflow-y-auto pb-20">
                 
                 <!-- Công thức chính -->
-                <div class="w-full bg-slate-50 border border-slate-200 rounded-3xl p-6 md:p-10 shadow-inner text-left">
-                    <div id="slide-formula" class="text-slate-900 w-full overflow-x-auto slide-math-scroll py-2"></div>
+                <div class="w-full bg-slate-50 slide-dark-bg border border-slate-200 slide-dark-border rounded-3xl p-6 md:p-10 shadow-inner text-left transition-colors duration-300">
+                    <div id="slide-formula" class="text-slate-900 w-full overflow-x-auto slide-math-scroll py-2 transition-colors duration-300"></div>
                 </div>
 
                 <!-- Ví dụ -->
                 <div id="slide-example-container" class="w-full">
-                    <div class="text-xl md:text-2xl font-semibold text-slate-400 mb-4 uppercase tracking-widest text-left">Ví dụ minh họa</div>
-                    <div id="slide-example" class="text-slate-700 w-full overflow-x-auto slide-math-scroll pb-4 text-left"></div>
+                    <div class="text-xl md:text-2xl font-semibold text-slate-400 slide-dark-text mb-4 uppercase tracking-widest text-left transition-colors duration-300">Ví dụ minh họa</div>
+                    <div id="slide-example" class="text-slate-700 w-full overflow-x-auto slide-math-scroll pb-4 text-left transition-colors duration-300"></div>
                 </div>
             </div>
 
             <!-- Bộ đếm trang & Thanh tiến trình -->
-            <div class="absolute bottom-8 left-0 right-0 px-16 flex justify-between items-center text-slate-400 text-lg md:text-2xl font-medium bg-white/80 backdrop-blur-sm pt-2">
+            <div class="absolute bottom-8 left-0 right-0 px-16 flex justify-between items-center text-slate-400 slide-dark-text text-lg md:text-2xl font-medium bg-white/80 slide-dark-panel backdrop-blur-sm pt-2 transition-colors duration-300">
                 <div class="flex items-center gap-3">
-                    <span class="keyboard-hint bg-slate-100 border border-slate-200 rounded-lg px-3 py-1 text-base">⬅️</span>
+                    <span class="keyboard-hint bg-slate-100 slide-dark-hint border border-slate-200 slide-dark-border rounded-lg px-3 py-1 text-base transition-colors duration-300">⬅️</span>
                     <span>Lùi</span>
                 </div>
                 <div class="flex items-center gap-6 w-1/2">
-                    <div class="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
+                    <div class="flex-1 h-2 bg-slate-100 slide-dark-hint rounded-full overflow-hidden transition-colors duration-300">
                         <div id="slide-progress" class="h-full bg-blue-500 transition-all duration-300 w-0"></div>
                     </div>
-                    <span id="slide-counter" class="w-24 text-right font-mono font-bold text-slate-500">1 / 10</span>
+                    <span id="slide-counter" class="w-24 text-right font-mono font-bold text-slate-500 slide-dark-text transition-colors duration-300">1 / 10</span>
                 </div>
                 <div class="flex items-center gap-3">
                     <span>Tiến</span>
-                    <span class="keyboard-hint bg-slate-100 border border-slate-200 rounded-lg px-3 py-1 text-base">➡️</span>
+                    <span class="keyboard-hint bg-slate-100 slide-dark-hint border border-slate-200 slide-dark-border rounded-lg px-3 py-1 text-base transition-colors duration-300">➡️</span>
                 </div>
             </div>
         </div>
 
-        <!-- Vùng bấm điều hướng Trái / Phải (Màu tối để nổi trên nền trắng) -->
+        <!-- Vùng bấm điều hướng Trái / Phải -->
         <div onclick="prevSlide()" class="absolute left-0 top-0 bottom-0 w-[12%] cursor-pointer group flex items-center justify-start pl-8 z-40" title="Trang trước (Phím mũi tên Trái)">
-            <div class="w-16 h-16 rounded-full bg-black/5 text-slate-700 flex items-center justify-center opacity-0 group-hover:opacity-100 group-hover:bg-black/10 transition duration-300">
+            <div class="w-16 h-16 rounded-full bg-black/5 slide-dark-nav-bg text-slate-700 slide-dark-nav-text flex items-center justify-center opacity-0 group-hover:opacity-100 group-hover:bg-black/10 transition duration-300">
                 <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M15 19l-7-7 7-7"></path></svg>
             </div>
         </div>
         <div onclick="nextSlide()" class="absolute right-0 top-0 bottom-0 w-[12%] cursor-pointer group flex items-center justify-end pr-8 z-40" title="Trang sau (Phím mũi tên Phải)">
-            <div class="w-16 h-16 rounded-full bg-black/5 text-slate-700 flex items-center justify-center opacity-0 group-hover:opacity-100 group-hover:bg-black/10 transition duration-300">
+            <div class="w-16 h-16 rounded-full bg-black/5 slide-dark-nav-bg text-slate-700 slide-dark-nav-text flex items-center justify-center opacity-0 group-hover:opacity-100 group-hover:bg-black/10 transition duration-300">
                 <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M9 5l7 7-7 7"></path></svg>
             </div>
         </div>
@@ -505,9 +548,10 @@
 
     <script>
         let currentLoadedData = [];
-        let currentBaseFontSize = 9.5; // Kích thước chữ mặc định (đơn vị pt)
-        let presentationSlideIndex = 0; // Biến trạng thái cho chế độ trình chiếu
-        let presentationFontScale = 1; // Biến zoom font chữ cho trình chiếu
+        let currentBaseFontSize = 9.5; 
+        let presentationSlideIndex = 0; 
+        let presentationFontScale = 1; 
+        let isEditMode = false; // Trạng thái Edit Text
 
         // --- HÀM ẨN HIỆN PANEL ---
         function togglePanel(panelId, iconId) {
@@ -540,22 +584,12 @@
 
         // --- DỮ LIỆU MẪU ---
         const sampleData = [
-            { "Chủ đề": "1. Đạo hàm", "Tên công thức": "Lũy thừa", "Công thức": "$(x^n)' = n \\cdot x^{n-1}$", "Ví dụ": "$(x^3)' = 3x^2$", "Link bài tập": "https://vi.wikipedia.org/wiki/%C4%90%E1%BA%A1o_h%C3%A0m" },
-            { "Chủ đề": "1. Đạo hàm", "Tên công thức": "Căn bậc hai", "Công thức": "$(\\sqrt{x})' = \\frac{1}{2\\sqrt{x}}$", "Ví dụ": "$(\\sqrt{2x})' = \\frac{1}{\\sqrt{2x}}$" },
+            { "Chủ đề": "1. Định lý $Pytago$", "Tên công thức": "Cạnh huyền tam giác vuông $\\Delta$", "Công thức": "$a^2 + b^2 = c^2$", "Ví dụ": "$3^2 + 4^2 = 5^2$", "Link bài tập": "https://vi.wikipedia.org/wiki/%C4%90%E1%BA%A1o_h%C3%A0m" },
+            { "Chủ đề": "1. Đạo hàm", "Tên công thức": "Căn bậc hai $\\sqrt{x}$", "Công thức": "$(\\sqrt{x})' = \\frac{1}{2\\sqrt{x}}$", "Ví dụ": "$(\\sqrt{2x})' = \\frac{1}{\\sqrt{2x}}$" },
             { "Chủ đề": "2. Lượng giác", "Tên công thức": "Sin & Cos", "Công thức": "$(\\sin x)' = \\cos x$<br>$(\\cos x)' = -\\sin x$", "Ví dụ": "$(\\sin 2x)' = 2\\cos 2x$", "Link bài tập": "https://vi.wikipedia.org/wiki/H%C3%A0m_s%E1%BB%91_l%C6%B0%E1%BB%A3ng_gi%C3%A1c" },
             { "Chủ đề": "2. Lượng giác", "Tên công thức": "Tan & Cot", "Công thức": "$(\\tan x)' = \\frac{1}{\\cos^2 x}$<br>$(\\cot x)' = -\\frac{1}{\\sin^2 x}$", "Ví dụ": "$(\\tan 3x)' = \\frac{3}{\\cos^2 3x}$" },
             { "Chủ đề": "3. Logarit & Mũ", "Tên công thức": "Tổng/Hiệu", "Công thức": "$\\log_a(xy) = \\log_a x + \\log_a y$<br>$\\log_a(\\frac{x}{y}) = \\log_a x - \\log_a y$", "Ví dụ": "$\\log_2(8) = \\log_2(4) + \\log_2(2)$" },
-            { "Chủ đề": "4. Tích phân", "Tên công thức": "Đa thức", "Công thức": "$\\int x^n dx = \\frac{x^{n+1}}{n+1} + C$", "Ví dụ": "$\\int x^2 dx = \\frac{x^3}{3} + C$" },
-            // Thêm data giả lập để xem chức năng cuộn trang nhiều dòng
-            { "Chủ đề": "5. Ví dụ kéo dài", "Tên công thức": "Kiểm tra", "Công thức": "$1+1=2$", "Ví dụ": "Trang in sẽ tự đẩy" },
-            { "Chủ đề": "5. Ví dụ kéo dài", "Tên công thức": "Kiểm tra", "Công thức": "$1+1=2$", "Ví dụ": "Trang in sẽ tự đẩy" },
-            { "Chủ đề": "5. Ví dụ kéo dài", "Tên công thức": "Kiểm tra", "Công thức": "$1+1=2$", "Ví dụ": "Trang in sẽ tự đẩy" },
-            { "Chủ đề": "5. Ví dụ kéo dài", "Tên công thức": "Kiểm tra", "Công thức": "$1+1=2$", "Ví dụ": "Trang in sẽ tự đẩy" },
-            { "Chủ đề": "5. Ví dụ kéo dài", "Tên công thức": "Kiểm tra", "Công thức": "$1+1=2$", "Ví dụ": "Trang in sẽ tự đẩy" },
-            { "Chủ đề": "5. Ví dụ kéo dài", "Tên công thức": "Kiểm tra", "Công thức": "$1+1=2$", "Ví dụ": "Trang in sẽ tự đẩy" },
-            { "Chủ đề": "5. Ví dụ kéo dài", "Tên công thức": "Kiểm tra", "Công thức": "$1+1=2$", "Ví dụ": "Trang in sẽ tự đẩy" },
-            { "Chủ đề": "5. Ví dụ kéo dài", "Tên công thức": "Kiểm tra", "Công thức": "$1+1=2$", "Ví dụ": "Trang in sẽ tự đẩy" },
-            { "Chủ đề": "5. Ví dụ kéo dài", "Tên công thức": "Kiểm tra", "Công thức": "$1+1=2$", "Ví dụ": "Trang in sẽ tự đẩy" }
+            { "Chủ đề": "4. Tích phân", "Tên công thức": "Đa thức $\\int x^n dx$", "Công thức": "$\\int x^n dx = \\frac{x^{n+1}}{n+1} + C$", "Ví dụ": "$\\int x^2 dx = \\frac{x^3}{3} + C$" }
         ];
 
         // --- ĐỒNG BỘ TIÊU ĐỀ ---
@@ -593,7 +627,7 @@
 
         updatePrintInfo(); // Khởi tạo lần đầu
 
-        // --- BỘ TỪ ĐIỂN ICON MỚI ---
+        // --- BỘ TỪ ĐIỂN ICON ---
         const iconDictionaries = {
             default: { keywords: { 'đạo hàm': '🚀', 'lượng giác': '🎡', 'tích phân': '🎢', 'logarit': '🍄', 'hàm số': '📈', 'hình': '🧊' }, fallback: ['🦄','🌸','🍀','🌟','🍓','🧸','🎈','🌻','🎀','🪄','🐧','🐬','🍩'] },
             math: { fallback: ['📐', '📏', '🧮', '✖️', '➗', '➕', '➖', '💯', '🔢', '📊', '📈', '📉'] },
@@ -613,14 +647,12 @@
             const iconSet = iconDictionaries[setKey] || iconDictionaries['default'];
             const t = topic.toLowerCase();
 
-            // Ưu tiên tìm theo từ khóa nếu bộ icon có hỗ trợ (như bộ default)
             if (iconSet.keywords) {
                 for (const [key, icon] of Object.entries(iconSet.keywords)) {
                     if (t.includes(key)) return icon;
                 }
             }
 
-            // Nếu không khớp từ khóa, lấy ngẫu nhiên một icon trong mảng fallback dựa trên mã băm của tên chủ đề
             const fallbackArray = iconSet.fallback;
             let hash = 0;
             for (let i = 0; i < topic.length; i++) hash = topic.charCodeAt(i) + ((hash << 5) - hash);
@@ -652,11 +684,9 @@
             const mode = document.getElementById('orientation-select').value;
             const styleEl = document.getElementById('dynamic-print-style');
             
-            // Xóa CSS cũ
             document.body.classList.remove('landscape-mode', 'portrait-1-mode');
             
             let printCss = '';
-            // Ghi chú: Dùng lề margin 15mm (1.5cm) chuẩn, thay thế cho max-width của Tailwind
             if (mode === 'landscape') {
                 document.body.classList.add('landscape-mode');
                 printCss = `
@@ -696,6 +726,9 @@
         }
 
         function togglePreview() {
+            // Tắt edit mode nếu đang bật
+            if (isEditMode) toggleEditMode();
+
             document.body.classList.toggle('preview-active');
             const controls = document.getElementById('preview-controls');
             if (document.body.classList.contains('preview-active')) {
@@ -711,6 +744,8 @@
 
         function triggerPrint() {
             if (!currentLoadedData.length) return showMessage("⚠️ Không có dữ liệu để in!", true);
+            if (isEditMode) toggleEditMode(); // Lưu văn bản tự động trước khi in
+
             if (typeof MathJax !== 'undefined' && MathJax.typesetPromise) {
                 MathJax.typesetPromise().then(() => window.print()).catch(() => window.print());
             } else window.print();
@@ -735,9 +770,58 @@
             statusEl.timeoutId = setTimeout(() => statusEl.classList.add('hidden'), 5000);
         }
 
-        function formatMath(text) {
+        function formatMath(text, skipLineBreaks = false) {
             if (!text && text !== 0) return "";
+            if (skipLineBreaks) return text.toString(); // Chế độ sửa: trả về text thô
             return text.toString().replace(/\n/g, '<br>');
+        }
+
+        // --- HÀM TẮT/BẬT CHẾ ĐỘ SỬA LỖI (EDIT MODE) ---
+        function toggleEditMode() {
+            isEditMode = !isEditMode;
+            const btn = document.getElementById('btn-edit-mode');
+            const wrapper = document.getElementById('print-area-wrapper');
+            
+            if (isEditMode) {
+                btn.innerHTML = "💾 Lưu & Xem kết quả";
+                btn.classList.replace('bg-orange-500', 'bg-green-600');
+                btn.classList.replace('hover:bg-orange-600', 'hover:bg-green-700');
+                wrapper.classList.add('editing-mode');
+                renderData(currentLoadedData); // Render thô để sửa
+                showMessage("Đã bật Chế độ Sửa lỗi. Hãy nhấn vào bảng để sửa chữ và công thức.");
+            } else {
+                btn.innerHTML = "✏️ Bật sửa lỗi";
+                btn.classList.replace('bg-green-600', 'bg-orange-500');
+                btn.classList.replace('hover:bg-green-700', 'hover:bg-orange-600');
+                wrapper.classList.remove('editing-mode');
+                saveEditsToData(); // Cập nhật mảng data
+                renderData(currentLoadedData); // Render MathJax lại
+                showMessage("Đã lưu các thay đổi!", false);
+            }
+        }
+
+        // --- ĐỌC DOM VÀ LƯU VÀO MẢNG KHI TẮT CHẾ ĐỘ SỬA ---
+        function saveEditsToData() {
+            const rows = document.querySelectorAll('#content-container tr[data-original-index]');
+            rows.forEach(tr => {
+                const idx = tr.getAttribute('data-original-index');
+                if (idx !== null && currentLoadedData[idx]) {
+                    const nameCell = tr.querySelector('td[data-col="name"]');
+                    const formulaCell = tr.querySelector('td[data-col="formula"]');
+                    const exampleCell = tr.querySelector('td[data-col="example"]');
+                    
+                    if (nameCell) updateObjectKey(currentLoadedData[idx], ['Tên công thức', 'Ten cong thuc'], nameCell.innerText);
+                    if (formulaCell) updateObjectKey(currentLoadedData[idx], ['Công thức', 'Cong thuc'], formulaCell.innerText);
+                    if (exampleCell) updateObjectKey(currentLoadedData[idx], ['Ví dụ', 'Vi du'], exampleCell.innerText);
+                }
+            });
+        }
+
+        function updateObjectKey(obj, possibleKeys, newValue) {
+            for(let k of possibleKeys) {
+                if(obj.hasOwnProperty(k)) { obj[k] = newValue; return; }
+            }
+            obj[possibleKeys[0]] = newValue; // Fallback
         }
 
         function renderData(data) {
@@ -747,12 +831,14 @@
             
             const theme = document.getElementById('theme-select').value;
             const mode = document.getElementById('orientation-select').value;
-            const isPortraitTwoCol = (mode === 'portrait'); // Chỉ vô hiệu hóa ở chế độ dọc 2 cột siêu khít
-            const isLandscape = (mode === 'landscape');     // Chế độ in ngang
+            const isPortraitTwoCol = (mode === 'portrait'); 
+            const isLandscape = (mode === 'landscape');     
             
             let addNoteColumn = document.getElementById('check-add-note') ? document.getElementById('check-add-note').checked : true;
-            // Tự động vô hiệu hóa cột ghi chú nếu ở chế độ dọc 2 cột HOẶC chế độ ngang
             if (isPortraitTwoCol || isLandscape) addNoteColumn = false; 
+
+            // Nhúng index gốc vào dữ liệu để dễ bề map khi lưu sửa chữa
+            data.forEach((row, idx) => { row._originalIndex = idx; });
 
             const groupedData = {};
             data.forEach(row => {
@@ -767,86 +853,56 @@
                 groupDiv.className = 'topic-group bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden print:mb-1';
                 
                 let headerClass = "border-gray-200 print:border-gray-400 ";
-                let textThemeClass = ""; // Biến chứa màu chữ động theo chủ đề
+                let textThemeClass = ""; 
                 
                 switch (theme) {
                     case 'mono': 
-                        headerClass += "bg-gray-200 print:bg-gray-200 text-black"; 
-                        textThemeClass = "text-black print:text-black";
-                        break;
+                        headerClass += "bg-gray-200 print:bg-gray-200 text-black"; textThemeClass = "text-black print:text-black"; break;
                     case 'colorful': 
                         const palette = colorPalettes[topicIndex % colorPalettes.length];
-                        headerClass += `${palette.bg} ${palette.text}`; 
-                        textThemeClass = palette.text;
-                        break;
+                        headerClass += `${palette.bg} ${palette.text}`; textThemeClass = palette.text; break;
                     case 'pink': 
-                        headerClass += "bg-pink-100 print:bg-pink-100 text-pink-900"; 
-                        textThemeClass = "text-pink-900 print:text-pink-900";
-                        break;
+                        headerClass += "bg-pink-100 print:bg-pink-100 text-pink-900"; textThemeClass = "text-pink-900 print:text-pink-900"; break;
                     case 'ocean': 
-                        headerClass += "bg-gradient-to-r from-cyan-100 to-blue-200 text-cyan-900"; 
-                        textThemeClass = "text-cyan-900 print:text-cyan-900";
-                        break;
-                    // --- CÁC THEME MỚI ---
+                        headerClass += "bg-gradient-to-r from-cyan-100 to-blue-200 text-cyan-900"; textThemeClass = "text-cyan-900 print:text-cyan-900"; break;
                     case 'sunflower':
-                        headerClass += "bg-yellow-200 print:bg-yellow-200 text-yellow-900 border-yellow-300";
-                        textThemeClass = "text-yellow-900 print:text-yellow-900";
-                        break;
+                        headerClass += "bg-yellow-200 print:bg-yellow-200 text-yellow-900 border-yellow-300"; textThemeClass = "text-yellow-900 print:text-yellow-900"; break;
                     case 'matcha':
-                        headerClass += "bg-lime-200 print:bg-lime-200 text-lime-900 border-lime-300";
-                        textThemeClass = "text-lime-900 print:text-lime-900";
-                        break;
+                        headerClass += "bg-lime-200 print:bg-lime-200 text-lime-900 border-lime-300"; textThemeClass = "text-lime-900 print:text-lime-900"; break;
                     case 'lavender':
-                        headerClass += "bg-indigo-200 print:bg-indigo-200 text-indigo-900 border-indigo-300";
-                        textThemeClass = "text-indigo-900 print:text-indigo-900";
-                        break;
+                        headerClass += "bg-indigo-200 print:bg-indigo-200 text-indigo-900 border-indigo-300"; textThemeClass = "text-indigo-900 print:text-indigo-900"; break;
                     case 'macaron':
-                        headerClass += "bg-rose-100 print:bg-rose-100 text-teal-800 border-rose-200";
-                        textThemeClass = "text-teal-800 print:text-teal-900";
-                        break;
+                        headerClass += "bg-rose-100 print:bg-rose-100 text-teal-800 border-rose-200"; textThemeClass = "text-teal-800 print:text-teal-900"; break;
                     case 'mint':
-                        headerClass += "bg-emerald-100 print:bg-emerald-100 text-emerald-900 border-emerald-200";
-                        textThemeClass = "text-emerald-900 print:text-emerald-900";
-                        break;
+                        headerClass += "bg-emerald-100 print:bg-emerald-100 text-emerald-900 border-emerald-200"; textThemeClass = "text-emerald-900 print:text-emerald-900"; break;
                     case 'cherry':
-                        headerClass += "bg-red-200 print:bg-red-200 text-red-900 border-red-300";
-                        textThemeClass = "text-red-900 print:text-red-900";
-                        break;
+                        headerClass += "bg-red-200 print:bg-red-200 text-red-900 border-red-300"; textThemeClass = "text-red-900 print:text-red-900"; break;
                     case 'coffee':
-                        headerClass += "bg-stone-200 print:bg-stone-200 text-stone-800 border-stone-300";
-                        textThemeClass = "text-stone-800 print:text-stone-900";
-                        break;
+                        headerClass += "bg-stone-200 print:bg-stone-200 text-stone-800 border-stone-300"; textThemeClass = "text-stone-800 print:text-stone-900"; break;
                     case 'autumn':
-                        headerClass += "bg-orange-200 print:bg-orange-200 text-orange-900 border-orange-300";
-                        textThemeClass = "text-orange-900 print:text-orange-900";
-                        break;
+                        headerClass += "bg-orange-200 print:bg-orange-200 text-orange-900 border-orange-300"; textThemeClass = "text-orange-900 print:text-orange-900"; break;
                     case 'candy':
                         const cPalette = candyPalettes[topicIndex % candyPalettes.length];
-                        headerClass += `${cPalette.bg} ${cPalette.text}`; 
-                        textThemeClass = cPalette.text;
-                        break;
+                        headerClass += `${cPalette.bg} ${cPalette.text}`; textThemeClass = cPalette.text; break;
                     case 'dark-modern':
-                        headerClass += "bg-gray-800 print:bg-gray-800 text-cyan-300 border-gray-700";
-                        textThemeClass = "text-gray-800 print:text-gray-900"; // Trong nội dung bảng vẫn giữ chữ đen để dễ đọc
-                        groupDiv.className = 'topic-group bg-white rounded-lg shadow-sm border-2 border-gray-800 overflow-hidden print:mb-1';
-                        break;
-                    // ---------------------
+                        headerClass += "bg-gray-800 print:bg-gray-800 text-cyan-300 border-gray-700"; textThemeClass = "text-gray-800 print:text-gray-900";
+                        groupDiv.className = 'topic-group bg-white rounded-lg shadow-sm border-2 border-gray-800 overflow-hidden print:mb-1'; break;
                     default: 
-                        headerClass += "bg-blue-100 print:bg-blue-100 text-blue-900"; 
-                        textThemeClass = "text-blue-900 print:text-blue-900";
-                        break;
+                        headerClass += "bg-blue-100 print:bg-blue-100 text-blue-900"; textThemeClass = "text-blue-900 print:text-blue-900"; break;
                 }
 
                 let tableRows = '';
                 let hasExample = items.some(item => item['Ví dụ'] || item['Vi du']);
-                if (isPortraitTwoCol) hasExample = false; // Tự động bỏ qua cột ví dụ nếu dọc 2 cột
+                if (isPortraitTwoCol) hasExample = false; 
+
+                // Thuộc tính chỉnh sửa cho các ô
+                const editAttr = isEditMode ? 'contenteditable="true"' : '';
+                const editClass = isEditMode ? 'editable-cell' : '';
 
                 items.forEach((item, index) => {
                     const name = item['Tên công thức'] || item['Ten cong thuc'] || '';
                     const formula = item['Công thức'] || item['Cong thuc'] || '';
                     const example = item['Ví dụ'] || item['Vi du'] || '';
-                    
-                    // Tìm kiếm trường Link (hỗ trợ nhiều tên phổ biến cho cột 5)
                     const documentLink = item['Link'] || item['Link bài tập'] || item['Link tải liệu'] || item['QR'] || item['Link tài liệu'] || '';
                     
                     let nameWidth = 'w-[25%]', formulaWidth = 'w-[75%]', exampleWidth = 'w-[35%]', noteWidth = 'w-[25%]';
@@ -854,25 +910,24 @@
                     else if (hasExample && !addNoteColumn) { nameWidth = 'w-[25%]'; formulaWidth = 'w-[40%]'; exampleWidth = 'w-[35%]'; } 
                     else if (!hasExample && addNoteColumn) { nameWidth = 'w-[20%]'; formulaWidth = 'w-[60%]'; noteWidth = 'w-[20%]'; }
                     
-                    let exampleColHTML = hasExample ? `<td class="content-cell text-gray-800 ${exampleWidth} math-content align-top print:border-gray-400 border-l border-gray-100">${formatMath(example)}</td>` : '';
+                    let exampleColHTML = hasExample ? `<td class="content-cell text-gray-800 ${exampleWidth} math-content align-top print:border-gray-400 border-l border-gray-100 ${editClass}" ${editAttr} data-col="example">${formatMath(example, isEditMode)}</td>` : '';
                     
-                    // Logic xử lý hiển thị Ghi chú hoặc mã QR
                     let noteContentHTML = `<div class="flex flex-col w-full h-full min-h-[20px] pt-3"><div class="border-b border-dashed border-gray-300 w-full mb-3"></div><div class="border-b border-dashed border-gray-300 w-full mb-3"></div></div>`;
-                    
-                    if (documentLink && addNoteColumn) {
+                    if (documentLink && addNoteColumn && !isEditMode) {
                         noteContentHTML = `
                             <div class="flex flex-col items-center justify-center h-full py-1">
                                 <div class="qr-code-container w-10 h-10 print:w-9 print:h-9 mx-auto flex justify-center items-center" data-link="${documentLink}"></div>
                                 <span class="text-[6.5pt] text-gray-500 mt-1 text-center leading-tight">Quét xem<br>bài tập</span>
                             </div>`;
                     }
+                    if(isEditMode && addNoteColumn && documentLink) noteContentHTML = `<span class="text-xs text-blue-500">🔗 Link QR</span>`;
 
                     let noteColHTML = addNoteColumn ? `<td class="content-cell align-top print:border-gray-400 border-l border-gray-100 ${noteWidth} relative">${noteContentHTML}</td>` : '';
 
                     tableRows += `
-                        <tr class="border-b border-gray-100 last:border-0 print:border-gray-400">
-                            <td class="content-cell font-bold ${textThemeClass} ${nameWidth} bg-gray-50 print:bg-transparent align-top print:border-gray-400 border-r border-gray-100">${name}</td>
-                            <td class="content-cell ${textThemeClass} ${formulaWidth} math-content align-top print:border-gray-400">${formatMath(formula)}</td>
+                        <tr class="border-b border-gray-100 last:border-0 print:border-gray-400" data-original-index="${item._originalIndex}">
+                            <td class="content-cell font-bold ${textThemeClass} ${nameWidth} bg-gray-50 print:bg-transparent align-top print:border-gray-400 border-r border-gray-100 math-content ${editClass}" ${editAttr} data-col="name">${formatMath(name, isEditMode)}</td>
+                            <td class="content-cell ${textThemeClass} ${formulaWidth} math-content align-top print:border-gray-400 ${editClass}" ${editAttr} data-col="formula">${formatMath(formula, isEditMode)}</td>
                             ${exampleColHTML} ${noteColHTML}
                         </tr>
                     `;
@@ -881,7 +936,7 @@
                 groupDiv.innerHTML = `
                     <div class="theme-header ${headerClass} px-2 py-1 border-b flex items-center">
                         <span class="mr-2 text-lg leading-none">${getTopicIcon(topic)}</span>
-                        <h3 class="font-bold uppercase m-0 leading-tight">${topic}</h3>
+                        <h3 class="font-bold uppercase m-0 leading-tight math-content">${formatMath(topic, isEditMode)}</h3>
                     </div>
                     <table class="data-table w-full"><tbody>${tableRows}</tbody></table>
                 `;
@@ -889,28 +944,23 @@
                 topicIndex++;
             }
 
-            // Tiến hành sinh mã QR sau khi đã cập nhật HTML vào DOM
-            if (typeof QRCode !== 'undefined') {
+            // Tiến hành sinh mã QR
+            if (typeof QRCode !== 'undefined' && !isEditMode) {
                 document.querySelectorAll('.qr-code-container').forEach(el => {
                     if (!el.hasAttribute('data-qr-rendered')) {
-                        new QRCode(el, {
-                            text: el.getAttribute('data-link'),
-                            width: 128,  // Sinh ảnh kích thước lớn để độ nét cao khi in, CSS sẽ tự scale nhỏ lại
-                            height: 128,
-                            colorDark : "#000000",
-                            colorLight : "#ffffff",
-                            correctLevel : QRCode.CorrectLevel.L
-                        });
+                        new QRCode(el, { text: el.getAttribute('data-link'), width: 128, height: 128, colorDark : "#000000", colorLight : "#ffffff", correctLevel : QRCode.CorrectLevel.L });
                         el.setAttribute('data-qr-rendered', 'true');
                     }
                 });
             }
 
-            // Kích hoạt MathJax để vẽ công thức Toán
-            if (typeof MathJax !== 'undefined' && MathJax.typesetPromise) {
-                MathJax.typesetPromise([container]).catch(err => console.error(err));
-            } else {
-                window.addEventListener('load', () => { if (typeof MathJax !== 'undefined') MathJax.typesetPromise([container]); });
+            // Kích hoạt MathJax (CHỈ GỌI KHI KHÔNG TRONG CHẾ ĐỘ SỬA LỖI)
+            if (!isEditMode) {
+                if (typeof MathJax !== 'undefined' && MathJax.typesetPromise) {
+                    MathJax.typesetPromise([container]).catch(err => console.error(err));
+                } else {
+                    window.addEventListener('load', () => { if (typeof MathJax !== 'undefined') MathJax.typesetPromise([container]); });
+                }
             }
         }
 
@@ -955,7 +1005,7 @@ QUY TẮC NỘI DUNG (QUAN TRỌNG):
             showMessage("📋 Đã copy Prompt vào bộ nhớ tạm!");
         }
 
-        function loadSampleData() { renderData(sampleData); showMessage("Đã tải dữ liệu mẫu (có kèm Link QR test)!"); }
+        function loadSampleData() { renderData(sampleData); showMessage("Đã tải dữ liệu mẫu!"); }
 
         document.getElementById('excel-file').addEventListener('change', function(e) {
             const file = e.target.files[0];
@@ -989,11 +1039,9 @@ QUY TẮC NỘI DUNG (QUAN TRỌNG):
             });
         }
         
-        // Cài đặt cấu hình mặc định (Font và hướng giấy) lúc đầu
+        // Khởi tạo
         applyFontSettings();
         applyOrientation();
-        
-        // Khởi tạo trạng thái icon cho panel bị ẩn (Prompt)
         document.getElementById('icon-prompt').style.transform = 'rotate(180deg)';
 
         // ==========================================
@@ -1003,38 +1051,47 @@ QUY TẮC NỘI DUNG (QUAN TRỌNG):
         function changePresentationZoom(delta) {
             presentationFontScale += delta;
             if (presentationFontScale < 0.5) presentationFontScale = 0.5;
-            if (presentationFontScale > 3) presentationFontScale = 3; // Giới hạn tối đa 300%
+            if (presentationFontScale > 3) presentationFontScale = 3; 
             document.getElementById('presentation-slide').style.setProperty('--slide-font-scale', presentationFontScale);
             document.getElementById('slide-zoom-text').innerText = Math.round(presentationFontScale * 100) + '%';
+        }
+
+        // Kích hoạt / Tắt giao diện tối cho trình chiếu
+        function toggleSlideDarkMode() {
+            document.body.classList.toggle('presentation-dark');
+            const iconMoon = document.getElementById('icon-moon');
+            if(document.body.classList.contains('presentation-dark')){
+                // SVG Mặt trời (Light Mode Toggle)
+                iconMoon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>`;
+            } else {
+                // SVG Mặt trăng
+                iconMoon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>`;
+            }
         }
 
         function openPresentation() {
             if (!currentLoadedData || currentLoadedData.length === 0) {
                 return showMessage("⚠️ Chưa có dữ liệu để trình chiếu. Vui lòng tải dữ liệu trước!", true);
             }
+            if (isEditMode) toggleEditMode(); // Tắt chế độ sửa lỗi trước khi trình chiếu
+
             presentationSlideIndex = 0;
-            
-            // Reset zoom chữ khi mở trình chiếu
             presentationFontScale = 1;
             document.getElementById('presentation-slide').style.setProperty('--slide-font-scale', 1);
             document.getElementById('slide-zoom-text').innerText = '100%';
             
             document.getElementById('presentation-overlay').classList.remove('hidden');
-            document.body.classList.add('presentation-active'); // Chống scroll body
+            document.body.classList.add('presentation-active'); 
             renderPresentationSlide();
             
-            // Thêm lắng nghe sự kiện bàn phím
             document.addEventListener('keydown', handlePresentationKeys);
         }
 
         function closePresentation() {
-            // Thoát fullscreen nếu đang bật
             if (document.fullscreenElement || document.webkitFullscreenElement) {
                 if (document.exitFullscreen) {
                     document.exitFullscreen().catch(err => console.log(err));
-                } else if (document.webkitExitFullscreen) { /* Safari */
-                    document.webkitExitFullscreen();
-                }
+                } else if (document.webkitExitFullscreen) { document.webkitExitFullscreen(); }
             }
             document.getElementById('presentation-overlay').classList.add('hidden');
             document.body.classList.remove('presentation-active');
@@ -1044,21 +1101,13 @@ QUY TẮC NỘI DUNG (QUAN TRỌNG):
         function toggleFullscreen() {
             const overlay = document.getElementById('presentation-overlay');
             if (!document.fullscreenElement && !document.webkitFullscreenElement) {
-                if (overlay.requestFullscreen) {
-                    overlay.requestFullscreen().catch(err => console.log(err));
-                } else if (overlay.webkitRequestFullscreen) { /* Safari */
-                    overlay.webkitRequestFullscreen();
-                } else if (overlay.msRequestFullscreen) { /* IE11 */
-                    overlay.msRequestFullscreen();
-                }
+                if (overlay.requestFullscreen) overlay.requestFullscreen().catch(err => console.log(err));
+                else if (overlay.webkitRequestFullscreen) overlay.webkitRequestFullscreen();
+                else if (overlay.msRequestFullscreen) overlay.msRequestFullscreen();
             } else {
-                if (document.exitFullscreen) {
-                    document.exitFullscreen();
-                } else if (document.webkitExitFullscreen) { /* Safari */
-                    document.webkitExitFullscreen();
-                } else if (document.msExitFullscreen) { /* IE11 */
-                    document.msExitFullscreen();
-                }
+                if (document.exitFullscreen) document.exitFullscreen();
+                else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+                else if (document.msExitFullscreen) document.msExitFullscreen();
             }
         }
 
@@ -1071,12 +1120,13 @@ QUY TẮC NỘI DUNG (QUAN TRỌNG):
             const formula = data['Công thức'] || data['Cong thuc'] || '';
             const example = data['Ví dụ'] || data['Vi du'] || '';
 
-            // Render Title & Icon
+            // Đưa thẳng raw text có ký hiệu $ vào để MathJax lo
             document.getElementById('slide-icon').innerText = getTopicIcon(topic);
-            document.getElementById('slide-topic-text').innerText = topic;
-            document.getElementById('slide-name').innerText = name;
+            const topicEl = document.getElementById('slide-topic-text');
+            topicEl.innerHTML = formatMath(topic);
+            const titleEl = document.getElementById('slide-name');
+            titleEl.innerHTML = formatMath(name);
             
-            // Render Math Formula & Example
             const formulaEl = document.getElementById('slide-formula');
             formulaEl.innerHTML = formatMath(formula);
             
@@ -1090,14 +1140,13 @@ QUY TẮC NỘI DUNG (QUAN TRỌNG):
                 exampleContainer.classList.add('hidden');
             }
 
-            // Update Counter & Progress Bar
             document.getElementById('slide-counter').innerText = `${presentationSlideIndex + 1} / ${currentLoadedData.length}`;
             const progressPercent = ((presentationSlideIndex + 1) / currentLoadedData.length) * 100;
             document.getElementById('slide-progress').style.width = `${progressPercent}%`;
 
-            // Yêu cầu MathJax render lại công thức cho các thẻ vừa thay đổi HTML
+            // Yêu cầu MathJax render tất cả text
             if (typeof MathJax !== 'undefined' && MathJax.typesetPromise) {
-                MathJax.typesetPromise([formulaEl, exampleEl]).catch(err => console.error(err));
+                MathJax.typesetPromise([formulaEl, exampleEl, titleEl, topicEl]).catch(err => console.error(err));
             }
         }
 
@@ -1124,13 +1173,14 @@ QUY TẮC NỘI DUNG (QUAN TRỌNG):
                 closePresentation();
             } else if (e.key.toLowerCase() === 'f') {
                 toggleFullscreen();
+            } else if (e.key.toLowerCase() === 'd') {
+                toggleSlideDarkMode();
             } else if (e.key === '=' || e.key === '+') {
                 changePresentationZoom(0.1);
             } else if (e.key === '-' || e.key === '_') {
                 changePresentationZoom(-0.1);
             }
         }
-
     </script>
 </body>
 </html>
