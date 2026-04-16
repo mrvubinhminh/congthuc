@@ -224,9 +224,14 @@
             <div class="mt-6 flex flex-wrap justify-center gap-3">
                 <button onclick="loadSampleData()" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-2 px-4 rounded-full text-sm shadow-sm transition">Tải dữ liệu mẫu</button>
                 
-                <!-- NÚT SỬA LỖI VĂN BẢN MỚI -->
+                <!-- NÚT SỬA LỖI VĂN BẢN -->
                 <button id="btn-edit-mode" onclick="toggleEditMode()" class="bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-4 rounded-full shadow-md text-sm transition flex items-center">
                     ✏️ Bật sửa lỗi
+                </button>
+
+                <!-- NÚT LƯU EXCEL MỚI THÊM -->
+                <button onclick="exportToExcel()" class="bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-2 px-4 rounded-full shadow-md text-sm transition flex items-center" title="Lưu lại file Excel sau khi đã chỉnh sửa">
+                    💾 Xuất Excel
                 </button>
 
                 <button onclick="togglePreview()" class="bg-teal-500 hover:bg-teal-600 text-white font-bold py-2 px-4 rounded-full shadow-md text-sm transition">👁️ Xem trước in</button>
@@ -757,6 +762,33 @@
             triggerPrint();
         }
 
+        // --- HÀM XUẤT FILE EXCEL SAU KHI SỬA LỖI ---
+        function exportToExcel() {
+            if (!currentLoadedData || currentLoadedData.length === 0) {
+                return showMessage("⚠️ Không có dữ liệu để xuất!", true);
+            }
+            
+            // Nếu đang trong chế độ sửa, lưu dữ liệu từ DOM vào mảng trước khi xuất
+            if (isEditMode) {
+                saveEditsToData();
+            }
+
+            // Tạo bản sao dữ liệu và xóa trường _originalIndex nội bộ
+            const exportData = currentLoadedData.map(row => {
+                const newRow = { ...row };
+                delete newRow._originalIndex;
+                return newRow;
+            });
+
+            // Sử dụng SheetJS để tạo workbook và tải file xuống
+            const worksheet = XLSX.utils.json_to_sheet(exportData);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "CongThuc");
+
+            XLSX.writeFile(workbook, "TongHopCongThuc.xlsx");
+            showMessage("✅ Đã xuất file Excel thành công!");
+        }
+
         function showMessage(msg, isError = false) {
             let statusEl = document.getElementById('status-message');
             if (!statusEl) {
@@ -796,7 +828,7 @@
                 wrapper.classList.remove('editing-mode');
                 saveEditsToData(); // Cập nhật mảng data
                 renderData(currentLoadedData); // Render MathJax lại
-                showMessage("Đã lưu các thay đổi!", false);
+                showMessage("Đã lưu các thay đổi! Bạn có thể Xuất Excel để lưu lại file vừa sửa.", false);
             }
         }
 
